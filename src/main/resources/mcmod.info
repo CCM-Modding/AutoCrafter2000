@@ -1,0 +1,16 @@
+[
+{
+  "modid": "AutoCrafter2000",
+  "name": "AutoCrafter2000",
+  "description": "Go make that factory!",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/CCM-Modding/AutoCrafter2000",
+  "updateUrl": "",
+  "authors": ["Dries007"],
+  "credits": "Claycorp for idea, BC for code example.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
