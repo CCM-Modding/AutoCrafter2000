@@ -30,11 +30,11 @@ import net.minecraft.world.World;
 
 public class AutoCrafterTile extends TileEntity implements ISidedInventory
 {
-    public static final int SIDE_OUT = 0;
-    public static final int SLOT_OUT = 0;
+    public static final int   SIDE_OUT  = 0;
+    public static final int   SLOT_OUT  = 0;
     public static final int[] SLOTS_OUT = {0};
     public static final int[] SLOTS_INV = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    public static final int SIZE = SLOTS_INV.length + SLOTS_OUT.length;
+    public static final int   SIZE      = SLOTS_INV.length + SLOTS_OUT.length;
 
     ItemStack[] inv = new ItemStack[SIZE];
 

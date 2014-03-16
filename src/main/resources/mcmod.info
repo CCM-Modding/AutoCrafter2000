@@ -11,6 +11,6 @@
   "credits": "Claycorp for idea, BC for code example.",
   "logoFile": "",
   "screenshots": [],
-  "dependencies": []
+  "dependencies": ["required-after:NucleumOmnium"]
 }
 ]

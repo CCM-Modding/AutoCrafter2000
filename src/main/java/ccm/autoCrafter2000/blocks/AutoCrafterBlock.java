@@ -42,8 +42,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-
 public class AutoCrafterBlock extends BlockContainer
 {
     private Icon icoBottom;

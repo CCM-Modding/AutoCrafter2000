@@ -23,7 +23,6 @@ package ccm.autoCrafter2000;
 
 import ccm.autoCrafter2000.blocks.AutoCrafterBlock;
 import ccm.autoCrafter2000.network.GuiHandler;
-import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import ccm.autoCrafter2000.util.Config;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.ModMetadata;
@@ -31,19 +30,10 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.LanguageRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
-import org.mcstats.Metrics;
 
-import java.io.IOException;
+import static ccm.autoCrafter2000.util.Constants.MODID;
 
-import static ccm.autoCrafter2000.util.Constants.*;
-
-@Mod(modid = MODID)
+@Mod(modid = MODID, dependencies = "required-after:NucleumOmnium")
 @NetworkMod(clientSideRequired = true)
 public class AutoCrafter2000
 {
@@ -63,17 +53,6 @@ public class AutoCrafter2000
         config = new Config(event.getSuggestedConfigurationFile());
 
         autoCrafterBlock = new AutoCrafterBlock(config.blockAutoCrafterID);
-
-
-        try
-        {
-            Metrics metrics = new Metrics(MODID, getVersion());
-            metrics.start();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
     }
 
     @Mod.EventHandler()

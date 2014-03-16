@@ -1,8 +1,10 @@
-WorldFiller2000
+AutoCrafter2000
 ===============
 
-World pregenerator for MC with Forge
-
-
-All command based. Feature request and bugs in the issues please.
-You must include screenshots and/or logs with your issue report!
+Simple Autocrafting table that instantly crafts and allows for pipe/hopper interactions.<br>
+<br>
+<a href="http://dries007.net:8080/job/AutoCrafter2000/">Download here.</a><br>
+Nucleum-Omnium required.<br>
+<br>
+Please make an issue if you have suggestions or bug reports.<br>
+Include a log/stacktrace and screenshot where possible!

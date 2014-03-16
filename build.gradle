@@ -1,28 +1,48 @@
 buildscript {
     repositories {
+        maven { url = "http://maven.dries007.net/content/repositories/ccm/" }
+        maven { url = "http://files.minecraftforge.net/maven/" }
+        maven { url = "https://libraries.minecraft.net/" }
         mavenCentral()
     }
+    
     dependencies {
 		classpath 'com.github.abrarsyed.gmcp:GMCP:latest.integration'
     }
 }
+configurations {
+    compile
+    deployJars
+}
+repositories {
+    maven { url = "http://maven.dries007.net/content/repositories/ccm/" }
+    maven { url = "http://files.minecraftforge.net/maven/" }
+    maven { url = "https://libraries.minecraft.net/" }
+}
 
 apply plugin: "gmcp"
+apply plugin: "maven"
 
-ext.env = System.getenv()
-version = file('version.txt').text + env.BUILD_NUMBER
+group = "ccm.autoCrafter2000"
+version = "1.0.0"
 
 targetCompatibility = 1.6
 sourceCompatibility = 1.6
 
-println 'Version: ' + project.version
 archivesBaseName = 'AutoCrafter2000'
 minecraft {
 	minecraftVersion = "1.6.4"
 }
 
-processResources
-{
+ext.BUILD_NUMBER = System.getenv().BUILD_NUMBER;
+if (ext.BUILD_NUMBER == null) ext.BUILD_NUMBER = "0"
+version = project.minecraft.minecraftVersion + "-" + version + "." + ext.BUILD_NUMBER
+
+dependencies {
+    compile("ccm.nucleumOmnium:NucleumOmnium:" + project.minecraft.minecraftVersion + "-2.+:dev")
+}
+
+processResources {
     from(sourceSets.main.resources.srcDirs) {
         include '**/*.info'
         expand 'version':project.version, 'mcversion':project.minecraft.minecraftVersion
@@ -32,12 +52,72 @@ processResources
         exclude '**/*.info'
     }
 }
-// because the normal default jar task has been modified to be obfuscated
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'dev-src'
+}
+
 task deobfJar(type: Jar) {
-	from sourceSets.main.output
-	appendix = 'dev'
+    from sourceSets.main.output
+	classifier = 'dev'
 }
 
 artifacts {
-	archives deobfJar
+	archives jar
+    archives sourcesJar
+    archives deobfJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: mavenUrl) {
+                authentication(userName: mavenUser, password: mavenPassword)
+            }
+            pom {
+                groupId = project.group
+                version = project.version
+                artifactId = project.archivesBaseName
+                project {
+                    name project.archivesBaseName
+                    packaging 'jar'
+                    description 'Adds a simple automatic crafting table.'
+                    url 'https://github.com/CCM-Modding/AutoCrafter2000'
+
+                    scm {
+                        url 'https://github.com/CCM-Modding/AutoCrafter2000'
+                        connection 'scm:git:git://github.com/CCM-Modding/AutoCrafter2000.git'
+                        developerConnection 'scm:git:git@github.com:CCM-Modding/AutoCrafter2000.git'
+                    }
+
+                    issueManagement {
+                        system 'github'
+                        url 'https://github.com/CCM-Modding/AutoCrafter2000/issues'
+                    }
+
+                    licenses  {
+                        license  {
+                            name 'MIT License'
+                            url 'https://raw.github.com/CCM-Modding/AutoCrafter2000/master/LICENCE'
+                            distribution 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'Dries007'
+                            name 'Dries007'
+                            roles { role 'developer' }
+                        }
+                        developer {
+                            id 'Claycorp'
+                            name 'Claycorp'
+                            roles { role 'architect' }
+                        }
+                    }
+                }
+           }
+       }
+    }
 }
