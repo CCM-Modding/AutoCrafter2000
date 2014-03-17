@@ -44,9 +44,10 @@ import net.minecraft.world.World;
 
 public class AutoCrafterBlock extends BlockContainer
 {
-    private Icon icoBottom;
-    private Icon icoSide;
-    private Icon icoTop;
+    public static AutoCrafterBlock instance;
+    private       Icon             icoBottom;
+    private       Icon             icoSide;
+    private       Icon             icoTop;
 
     public AutoCrafterBlock(int par1)
     {
@@ -62,6 +63,8 @@ public class AutoCrafterBlock extends BlockContainer
         LanguageRegistry.addName(this, "AutoCrafter");
         CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chest, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
         CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chestTrapped, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
+
+        instance = this;
     }
 
     @Override

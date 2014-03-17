@@ -23,6 +23,7 @@ package ccm.autoCrafter2000.network;
 
 import ccm.autoCrafter2000.guis.AutoCrafterContainer;
 import ccm.autoCrafter2000.guis.AutoCrafterGui;
+import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import ccm.autoCrafter2000.util.Constants;
 import cpw.mods.fml.common.network.IGuiHandler;
 import net.minecraft.entity.player.EntityPlayer;
@@ -36,7 +37,7 @@ public class GuiHandler implements IGuiHandler
         switch (ID)
         {
             case Constants.GuiID_AutoCrafter:
-                return new AutoCrafterContainer();
+                return new AutoCrafterContainer(player, (AutoCrafterTile) world.getBlockTileEntity(x, y, z));
             default:
                 return null;
         }
@@ -48,7 +49,7 @@ public class GuiHandler implements IGuiHandler
         switch (ID)
         {
             case Constants.GuiID_AutoCrafter:
-                return new AutoCrafterGui();
+                return new AutoCrafterGui(player, world, x, y, z);
             default:
                 return null;
         }
