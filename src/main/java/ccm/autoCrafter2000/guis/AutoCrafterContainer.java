@@ -109,7 +109,8 @@ public class AutoCrafterContainer extends Container
     public void onCraftMatrixChanged(IInventory par1IInventory)
     {
         super.onCraftMatrixChanged(par1IInventory);
-        this.tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, CraftingManager.getInstance().findMatchingRecipe(this.tile.inventoryMatrix, this.tile.worldObj));
+        tile.updateRecipe();
+        this.tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.getOutput());
     }
 
     /**
@@ -128,6 +129,40 @@ public class AutoCrafterContainer extends Container
     public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int par2)
     {
         ItemStack itemstack = null;
+
+        Slot slot = (Slot)this.inventorySlots.get(par2);
+
+        if (slot != null && slot.getHasStack())
+        {
+            ItemStack itemstack1 = slot.getStack();
+            itemstack = itemstack1.copy();
+
+            if (par2 < 10)
+            {
+                return null;
+            }
+            else if (par2 < 28)
+            {
+                if (!this.mergeItemStack(itemstack1, 28, this.inventorySlots.size(), true))
+                {
+                    return null;
+                }
+            }
+            else if (!this.mergeItemStack(itemstack1, 10, 28, false))
+            {
+                return null;
+            }
+
+            if (itemstack1.stackSize == 0)
+            {
+                slot.putStack(null);
+            }
+            else
+            {
+                slot.onSlotChanged();
+            }
+        }
+
         return itemstack;
     }
 

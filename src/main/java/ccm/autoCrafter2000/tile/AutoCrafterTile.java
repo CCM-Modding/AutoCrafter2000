@@ -26,15 +26,20 @@ import ccm.autoCrafter2000.util.MultiInventory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class AutoCrafterTile extends TileEntity implements ISidedInventory
 {
+    public static final String INV_RESULT     = "result";
+    public static final String INV_MATRIX     = "matrix";
+    public static final String INV_IN         = "in";
+    public static final String INV_OUT        = "out";
+
     public static final int   SLOT_OUT     = 0;
     public static final int   MATRIX       = 3 * 3;
     public static final int[] SLOTS_MATRIX = Helper.slotArray(SLOT_OUT, MATRIX);
@@ -51,7 +56,8 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     public InventoryBasic inventoryOut = new InventoryBasic("AutoCrafter_out", true, OUT);
 
     public MultiInventory multiInventory = new MultiInventory(inventoryCraftResult, inventoryMatrix, inventoryIn, inventoryOut);
-    private ItemStack output;
+    public IRecipe recipe;
+    private List<ItemStack> requiredItems;
     private int tick = 0;
 
     public AutoCrafterTile()
@@ -91,7 +97,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     @Override
     public void setInventorySlotContents(int i, ItemStack itemstack)
     {
-        if (i == SLOT_OUT) output = CraftingManager.getInstance().findMatchingRecipe(inventoryMatrix, worldObj);
+        if (i == SLOT_OUT) updateRecipe();
         multiInventory.setInventorySlotContents(i, itemstack);
     }
 
@@ -135,20 +141,22 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     public void readFromNBT(NBTTagCompound data)
     {
         super.readFromNBT(data);
-        Helper.readInvFromNBT(inventoryCraftResult, "result", data);
-        Helper.readInvFromNBT(inventoryMatrix, "matrix", data);
-        Helper.readInvFromNBT(inventoryIn, "in", data);
-        Helper.readInvFromNBT(inventoryOut, "out", data);
+        Helper.readInvFromNBT(inventoryCraftResult, INV_RESULT, data);
+        Helper.readInvFromNBT(inventoryMatrix, INV_MATRIX, data);
+        Helper.readInvFromNBT(inventoryIn, INV_IN, data);
+        Helper.readInvFromNBT(inventoryOut, INV_OUT, data);
+
+        updateRecipe();
     }
 
     @Override
     public void writeToNBT(NBTTagCompound data)
     {
         super.writeToNBT(data);
-        Helper.writeInvToNBT(inventoryCraftResult, "result", data);
-        Helper.writeInvToNBT(inventoryMatrix, "matrix", data);
-        Helper.writeInvToNBT(inventoryIn, "in", data);
-        Helper.writeInvToNBT(inventoryOut, "out", data);
+        Helper.writeInvToNBT(inventoryCraftResult, INV_RESULT, data);
+        Helper.writeInvToNBT(inventoryMatrix, INV_MATRIX, data);
+        Helper.writeInvToNBT(inventoryIn, INV_IN, data);
+        Helper.writeInvToNBT(inventoryOut, INV_OUT, data);
     }
 
     @Override
@@ -164,123 +172,39 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         if (worldObj.isRemote) return;
 
         tick++;
-        //if (tick % 1 != 0) return;
+        if (tick % 5 != 0) return;
         tick = 0;
 
-        if (output == null)
+        if (worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord)) return;
+
+        if (recipe != null && requiredItems != null)
         {
-            for (int i = 0; i < IN; i++)
+            List<ItemStack> input = Helper.getList(inventoryIn);
+            if (Helper.containsEnoughAll(input, requiredItems) && Helper.hasSpaceFor(inventoryOut, getOutput()))
             {
-                if (transferItoO(i)) break;
+                Helper.removeFromInventory(inventoryIn, requiredItems);
+                Helper.addToInventory(inventoryOut, getOutput());
             }
+        }
+    }
+
+    public void updateRecipe()
+    {
+        recipe = Helper.findMatchingRecipe(inventoryMatrix, worldObj);
+        if (recipe != null)
+        {
+            requiredItems = Helper.getList(inventoryMatrix);
         }
         else
         {
-            if (craft()) transferItemStackToInv(output.copy(), inventoryOut);
+            requiredItems = null;
         }
     }
 
-    private boolean craft()
+    public ItemStack getOutput()
     {
-        ArrayList<ItemStack> required = new ArrayList<ItemStack>();
-        for (int i = 0; i < inventoryMatrix.getSizeInventory(); i++)
-        {
-            ItemStack toMatch = inventoryMatrix.getStackInSlot(i);
-            if (toMatch == null) continue;
-
-            boolean needToAdd = true;
-            for (ItemStack prev_req : required)
-            {
-                if (canStacksMerge(prev_req, toMatch))
-                {
-                    prev_req.stackSize += toMatch.stackSize;
-                    needToAdd = false;
-                }
-            }
-            if (needToAdd) required.add(toMatch.copy());
-        }
-
-        ItemStack[] stacksToTake = new ItemStack[required.size()];
-        for (int i = 0; i < stacksToTake.length; i++)
-        {
-            boolean foundThis = false;
-            for (int j = 0; j < inventoryIn.getSizeInventory(); j++)
-            {
-                ItemStack input = inventoryIn.getStackInSlot(j);
-                if (input == null) continue;
-                if (canStacksMerge(required.get(i), input) && input.stackSize >= required.get(i).stackSize)
-                {
-                    stacksToTake[i] = input;
-                    foundThis = true;
-                    break;
-                }
-            }
-            if (!foundThis) return false;
-        }
-        for (int i = 0; i < stacksToTake.length; i++)
-        {
-            stacksToTake[i].stackSize -= required.get(i).stackSize;
-        }
-        for (int j = 0; j < inventoryIn.getSizeInventory(); j++)
-        {
-            ItemStack input = inventoryIn.getStackInSlot(j);
-            if (input == null) continue;
-            if (input.stackSize == 0) inventoryIn.setInventorySlotContents(j, null);
-        }
-
-        return true;
-    }
-
-    private boolean transferItoO(int slot)
-    {
-        ItemStack inStack = inventoryIn.getStackInSlot(slot);
-        if (inStack != null)
-        {
-            if (transferItemStackToInv(inStack, inventoryOut))
-            {
-                inventoryIn.onInventoryChanged();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean transferItemStackToInv(ItemStack inStack, IInventory out)
-    {
-        for (int i = 0; i < out.getSizeInventory(); i++)
-        {
-            ItemStack outStack = out.getStackInSlot(i);
-            if (outStack != null)
-            {
-                if (canStacksMerge(inStack, outStack) && outStack.getMaxStackSize() > outStack.stackSize)
-                {
-                    inStack.stackSize--;
-                    outStack.stackSize++;
-                    return true;
-                }
-            }
-        }
-        for (int i = 0; i < out.getSizeInventory(); i++)
-        {
-            ItemStack outStack = out.getStackInSlot(i);
-            if (outStack == null)
-            {
-                inStack.stackSize--;
-                ItemStack newOut = inStack.copy();
-                newOut.stackSize = 1;
-                out.setInventorySlotContents(i, newOut);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean canStacksMerge(ItemStack stack1, ItemStack stack2)
-    {
-        if (stack1 == null || stack2 == null) return false;
-        if (!stack1.isItemEqual(stack2)) return false;
-        if (!ItemStack.areItemStackTagsEqual(stack1, stack2)) return false;
-        return true;
+        if (recipe == null) return null;
+        return recipe.getRecipeOutput().copy();
     }
 
     @Override

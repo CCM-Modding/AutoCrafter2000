@@ -24,6 +24,7 @@ package ccm.autoCrafter2000.blocks;
 import ccm.autoCrafter2000.AutoCrafter2000;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import ccm.autoCrafter2000.util.Constants;
+import ccm.autoCrafter2000.util.Helper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -35,11 +36,13 @@ import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 public class AutoCrafterBlock extends BlockContainer
@@ -76,6 +79,9 @@ public class AutoCrafterBlock extends BlockContainer
     @Override
     public void breakBlock(World world, int x, int y, int z, int par5, int par6)
     {
+        TileEntity te = world.getBlockTileEntity(x, y, z);
+        if (te instanceof IInventory) Helper.dropItems(world, (IInventory) te, x, y, z);
+
         super.breakBlock(world, x, y, z, par5, par6);
     }
 
@@ -118,5 +124,10 @@ public class AutoCrafterBlock extends BlockContainer
         icoBottom = par1IconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter_bottom");
         icoSide = par1IconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter_side");
         icoTop = par1IconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter_top");
+    }
+
+    public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side)
+    {
+        return true;
     }
 }
