@@ -4,7 +4,6 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -56,7 +55,7 @@ public class Helper
     {
         List<ItemStack> input = new LinkedList<ItemStack>();
 
-        for (int i = 0; i < inventory.getSizeInventory(); i ++)
+        for (int i = 0; i < inventory.getSizeInventory(); i++)
         {
             ItemStack stackToAdd = inventory.getStackInSlot(i);
             if (stackToAdd == null) continue;
@@ -64,7 +63,7 @@ public class Helper
             for (ItemStack stackInList : input)
             {
                 if (stackInList == null) continue;
-                if (canStacksMerge(stackToAdd, stackInList))
+                if (canStacksMerge(stackToAdd, stackInList, false))
                 {
                     stackInList.stackSize += stackToAdd.stackSize;
                     f = true;
@@ -77,9 +76,9 @@ public class Helper
         return input;
     }
 
-    public static boolean canStacksMerge(ItemStack stack1, ItemStack stack2)
+    public static boolean canStacksMerge(ItemStack stack1, ItemStack stack2, boolean ifNull)
     {
-        if (stack1 == null || stack2 == null) return false;
+        if (stack1 == null || stack2 == null) return ifNull;
         if (!stack1.isItemEqual(stack2)) return false;
         if (!ItemStack.areItemStackTagsEqual(stack1, stack2)) return false;
         return true;
@@ -130,7 +129,7 @@ public class Helper
             ArrayList ingredients = new ArrayList<ItemStack>(2);
             ingredients.add(item1);
             ingredients.add(item2);
-            return new ShapelessRecipes(new ItemStack(item1.itemID, 1, newDamage),ingredients);
+            return new ShapelessRecipes(new ItemStack(item1.itemID, 1, newDamage), ingredients);
         }
         // End repair recipe handler
         else
@@ -190,41 +189,21 @@ public class Helper
 
     public static void dump(Object stuff)
     {
-        if (stuff instanceof Iterable)
-            for (Object o : (Iterable) stuff)
-                dump(o);
-        else
-            System.out.println(stuff);
+        if (stuff instanceof Iterable) for (Object o : (Iterable) stuff)
+            dump(o);
+        else System.out.println(stuff);
     }
 
-    public static boolean containsEnoughAll(List<ItemStack> inputList, List<ItemStack> requiredItems)
+    public static void removeFromInventory(IInventory inventoryIn, List<ItemStack> requiredItems)
     {
-        for (ItemStack requiredItem: requiredItems) if (!containsEnough(inputList, requiredItem)) return false;
-        return true;
+        for (ItemStack requiredItem : requiredItems) removeFromInventory(inventoryIn, requiredItem);
     }
 
-    public static boolean containsEnough(List<ItemStack> inputList, ItemStack requiredItem)
-    {
-        for (ItemStack input : inputList)
-        {
-            if (canStacksMerge(input, requiredItem))
-            {
-                if (requiredItem.stackSize <= input.stackSize) return true;
-            }
-        }
-        return false;
-    }
-
-    public static void removeFromInventory(InventoryBasic inventoryIn, List<ItemStack> requiredItems)
-    {
-        for (ItemStack requiredItem: requiredItems) removeFromInventory(inventoryIn, requiredItem);
-    }
-
-    public static void removeFromInventory(InventoryBasic inventoryIn, ItemStack requiredItems)
+    public static void removeFromInventory(IInventory inventoryIn, ItemStack requiredItems)
     {
         for (int i = 0; i < inventoryIn.getSizeInventory(); i++)
         {
-            if (canStacksMerge(requiredItems, inventoryIn.getStackInSlot(i)))
+            if (canStacksMerge(requiredItems, inventoryIn.getStackInSlot(i), false))
             {
                 requiredItems.stackSize -= inventoryIn.decrStackSize(i, requiredItems.stackSize).stackSize;
                 if (requiredItems.stackSize == 0) return;
@@ -232,15 +211,16 @@ public class Helper
         }
     }
 
-    public static void addToInventory(InventoryBasic inventoryOut, ItemStack output)
+    public static ItemStack addToInventory(IInventory inventoryOut, ItemStack output)
     {
+        if (output == null) return null;
         output = output.copy();
-        for (int i = 0; i < inventoryOut.getSizeInventory(); i ++)
+        for (int i = 0; i < inventoryOut.getSizeInventory(); i++)
         {
             ItemStack slotStack = inventoryOut.getStackInSlot(i);
             if (slotStack == null || slotStack.stackSize == slotStack.getMaxStackSize()) continue;
 
-            if (canStacksMerge(slotStack, output))
+            if (canStacksMerge(slotStack, output, false))
             {
                 if (slotStack.stackSize + output.stackSize > slotStack.getMaxStackSize())
                 {
@@ -254,51 +234,21 @@ public class Helper
                 }
             }
 
-            if (output.stackSize == 0) return;
+            if (output.stackSize == 0) return null;
         }
 
-        for (int i = 0; i < inventoryOut.getSizeInventory(); i ++)
+        for (int i = 0; i < inventoryOut.getSizeInventory(); i++)
         {
             ItemStack slotStack = inventoryOut.getStackInSlot(i);
             if (slotStack != null) continue;
             inventoryOut.setInventorySlotContents(i, output.copy());
-            return;
+            return null;
         }
+
+        return output;
     }
 
-    public static boolean hasSpaceFor(InventoryBasic inventoryOut, ItemStack output)
-    {
-        output = output.copy();
-        for (int i = 0; i < inventoryOut.getSizeInventory(); i ++)
-        {
-            ItemStack slotStack = inventoryOut.getStackInSlot(i);
-            if (slotStack == null || slotStack.stackSize == slotStack.getMaxStackSize()) continue;
-
-            if (canStacksMerge(slotStack, output))
-            {
-                if (slotStack.stackSize + output.stackSize > slotStack.getMaxStackSize())
-                {
-                    output.stackSize -= (slotStack.getMaxStackSize() - slotStack.stackSize);
-                }
-                else
-                {
-                    output.stackSize = 0;
-                }
-            }
-
-            if (output.stackSize == 0) return true;
-        }
-
-        for (int i = 0; i < inventoryOut.getSizeInventory(); i ++)
-        {
-            ItemStack slotStack = inventoryOut.getStackInSlot(i);
-            if (slotStack != null) continue;
-            return true;
-        }
-        return false;
-    }
-
-    public static void dropItems(World world, ItemStack stack, int i, int j, int k)
+    public static void dropItems(World world, ItemStack stack, int x, int y, int z)
     {
         if (stack == null || stack.stackSize <= 0) return;
 
@@ -306,22 +256,65 @@ public class Helper
         double d = (world.rand.nextFloat() * f1) + (1.0F - f1) * 0.5D;
         double d1 = (world.rand.nextFloat() * f1) + (1.0F - f1) * 0.5D;
         double d2 = (world.rand.nextFloat() * f1) + (1.0F - f1) * 0.5D;
-        EntityItem entityitem = new EntityItem(world, i + d, j + d1, k + d2, stack);
+        EntityItem entityitem = new EntityItem(world, x + d, y + d1, z + d2, stack);
         entityitem.delayBeforeCanPickup = 10;
 
         world.spawnEntityInWorld(entityitem);
     }
 
-    public static void dropItems(World world, IInventory inv, int i, int j, int k)
+    public static void dropItems(World world, IInventory inv, int x, int y, int z)
     {
-        for (int slot = 0; slot < inv.getSizeInventory(); ++slot)
+        for (int i = 0; i < inv.getSizeInventory(); ++i)
         {
-            ItemStack items = inv.getStackInSlot(slot);
+            ItemStack items = inv.getStackInSlot(i);
 
             if (items != null && items.stackSize > 0)
             {
-                dropItems(world, inv.getStackInSlot(slot).copy(), i, j, k);
+                dropItems(world, inv.getStackInSlot(i).copy(), x, y, z);
             }
         }
+    }
+
+    public static boolean contains(ItemStack input, IInventory inv)
+    {
+        for (int slot = 0; slot < inv.getSizeInventory(); ++slot)
+        {
+            ItemStack existing = inv.getStackInSlot(slot);
+
+            if (canStacksMerge(existing, input, false)) return true;
+        }
+        return false;
+    }
+
+    public static boolean hasSpaceFor(IInventory inventoryOut, ItemStack output)
+    {
+        for (int i = 0; i < inventoryOut.getSizeInventory(); i++)
+        {
+            ItemStack slotStack = inventoryOut.getStackInSlot(i);
+            if (slotStack == null) return true;
+        }
+
+        ItemStack outCopy = output.copy();
+        for (int i = 0; i < inventoryOut.getSizeInventory(); i++)
+        {
+            ItemStack slotStack = inventoryOut.getStackInSlot(i);
+            if (slotStack == null || !canStacksMerge(slotStack, outCopy, false)) continue;
+
+            if (slotStack.stackSize + outCopy.stackSize > outCopy.getMaxStackSize())
+            {
+                outCopy.stackSize -= (slotStack.getMaxStackSize() - slotStack.stackSize);
+                if (outCopy.stackSize == 0) return true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void addToInventory(IInventory inventoryOut, List<ItemStack> outputItems)
+    {
+        for (ItemStack stack : outputItems) addToInventory(inventoryOut, stack);
     }
 }

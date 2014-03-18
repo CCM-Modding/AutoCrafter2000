@@ -28,12 +28,11 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
 
 public class AutoCrafterContainer extends Container
 {
-    private final AutoCrafterTile tile;
-    private       ItemStack       prevOutput;
+    public final AutoCrafterTile tile;
+    private      ItemStack       prevOutput;
 
     public AutoCrafterContainer(EntityPlayer player, AutoCrafterTile te)
     {
@@ -110,7 +109,8 @@ public class AutoCrafterContainer extends Container
     {
         super.onCraftMatrixChanged(par1IInventory);
         tile.updateRecipe();
-        this.tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.getOutput());
+        if (tile.recipe == null) tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, null);
+        else tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput());
     }
 
     /**
@@ -130,7 +130,7 @@ public class AutoCrafterContainer extends Container
     {
         ItemStack itemstack = null;
 
-        Slot slot = (Slot)this.inventorySlots.get(par2);
+        Slot slot = (Slot) this.inventorySlots.get(par2);
 
         if (slot != null && slot.getHasStack())
         {

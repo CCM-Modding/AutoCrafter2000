@@ -29,16 +29,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatMessageComponent;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class AutoCrafterTile extends TileEntity implements ISidedInventory
 {
-    public static final String INV_RESULT     = "result";
-    public static final String INV_MATRIX     = "matrix";
-    public static final String INV_IN         = "in";
-    public static final String INV_OUT        = "out";
+    public static final String INV_RESULT = "result";
+    public static final String INV_MATRIX = "matrix";
+    public static final String INV_IN     = "in";
+    public static final String INV_OUT    = "out";
 
     public static final int   SLOT_OUT     = 0;
     public static final int   MATRIX       = 3 * 3;
@@ -51,15 +55,156 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
 
     public InventoryCraftResult inventoryCraftResult = new InventoryCraftResult();
     public InventoryCrafting    inventoryMatrix      = Helper.newCraftingMatrix(MATRIX, 1);
+    public InventoryCrafting    inventoryIn          = Helper.newCraftingMatrix(MATRIX, 64);
+    public InventoryBasic       inventoryOut         = new InventoryBasic("AutoCrafter_out", true, OUT);
+    public MultiInventory       multiInventory       = new MultiInventory(inventoryCraftResult, inventoryMatrix, inventoryIn, inventoryOut);
 
-    public InventoryBasic inventoryIn  = new InventoryBasic("AutoCrafter_in", true, IN);
-    public InventoryBasic inventoryOut = new InventoryBasic("AutoCrafter_out", true, OUT);
-
-    public MultiInventory multiInventory = new MultiInventory(inventoryCraftResult, inventoryMatrix, inventoryIn, inventoryOut);
     public IRecipe recipe;
-    private List<ItemStack> requiredItems;
     private int tick = 0;
+    public InternalPlayer internalPlayer;
+    public SlotCrafting   craftSlot;
+    public List<ItemStack> overflow = new LinkedList<ItemStack>();
 
+    @Override
+    public void updateEntity()
+    {
+        super.updateEntity();
+        if (worldObj.isRemote) return;
+
+        // Initialize code
+        if (craftSlot == null)
+        {
+            internalPlayer = new InternalPlayer();
+            craftSlot = new SlotCrafting(internalPlayer, inventoryIn, inventoryOut, xCoord, yCoord, zCoord);
+        }
+
+        // Lower tick rate
+        tick++;
+        if (tick % 5 != 0) return;
+        tick = 0;
+
+        // If powered, do nothing.
+        if (worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord)) return;
+
+        // Deal with overflow. If we couldn't empty, don't make new stuff.
+        emptyOverflow();
+        if (!overflow.isEmpty()) return;
+
+        // Matches recipes and handle the crafting.
+        if (recipe != null && recipe.matches(inventoryIn, worldObj))
+        {
+            ItemStack result = recipe.getCraftingResult(inventoryIn);
+            if (result == null) return;
+            result = result.copy();
+
+            if (Helper.hasSpaceFor(inventoryOut, result))
+            {
+                craftSlot.onPickupFromSlot(internalPlayer, result);
+
+                ItemStack stack = Helper.addToInventory(inventoryOut, result);
+                if (stack != null) overflow.add(stack);
+
+                for (int i = 0; i < internalPlayer.inventory.getSizeInventory(); i++)
+                {
+                    stack = Helper.addToInventory(inventoryOut, internalPlayer.inventory.getStackInSlotOnClosing(i));
+                    if (stack != null) overflow.add(stack);
+                }
+            }
+        }
+    }
+    
+    private void emptyOverflow()
+    {
+        Iterator<ItemStack> iterator = overflow.iterator();
+
+        while (iterator.hasNext())
+        {
+            ItemStack stack = iterator.next();
+            if (Helper.hasSpaceFor(inventoryOut, stack))
+            {
+                Helper.addToInventory(inventoryOut, stack);
+                iterator.remove();
+            }
+        }
+    }
+
+    public void updateRecipe()
+    {
+        recipe = Helper.findMatchingRecipe(inventoryMatrix, worldObj);
+    }
+
+    @Override
+    public boolean isItemValidForSlot(int slot, ItemStack stack)
+    {
+        for (int i : SLOTS_IN)
+            if (i == slot)
+            {
+                return Helper.canStacksMerge(stack, multiInventory.getStackInSlot(i - IN), false);
+            }
+        return multiInventory.isItemValidForSlot(slot, stack);
+    }
+
+    @Override
+    public int[] getAccessibleSlotsFromSide(int var1)
+    {
+        return SLOTS_IO;
+    }
+
+    @Override
+    public boolean canInsertItem(int slot, ItemStack stack, int side)
+    {
+        for (int i : SLOTS_IN) if (i == slot) return isItemValidForSlot(slot, stack);
+        return false;
+    }
+
+    @Override
+    public boolean canExtractItem(int slot, ItemStack stack, int side)
+    {
+        for (int i : SLOTS_OUT) if (i == slot) return true;
+        return false;
+    }
+
+    public boolean canInteractWith(EntityPlayer player)
+    {
+        return true;
+    }
+
+    /**
+     * I hate fake players myself but here is no better way.
+     */
+    private final class InternalPlayer extends EntityPlayer
+    {
+
+        public InternalPlayer()
+        {
+            super(AutoCrafterTile.this.worldObj, "[AutoCrafterTile]");
+            posX = AutoCrafterTile.this.xCoord;
+            posY = AutoCrafterTile.this.yCoord + 1;
+            posZ = AutoCrafterTile.this.zCoord;
+        }
+
+        @Override
+        public void sendChatToPlayer(ChatMessageComponent var1)
+        {
+        }
+
+        @Override
+        public boolean canCommandSenderUseCommand(int var1, String var2)
+        {
+            return false;
+        }
+
+        @Override
+        public ChunkCoordinates getPlayerCoordinates()
+        {
+            return null;
+        }
+    }
+
+
+    /**
+     * Start boring interface / TE code
+     */
     public AutoCrafterTile()
     {
 
@@ -146,7 +291,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         Helper.readInvFromNBT(inventoryIn, INV_IN, data);
         Helper.readInvFromNBT(inventoryOut, INV_OUT, data);
 
-        updateRecipe();
+        updateRecipe(); // Must update after load.
     }
 
     @Override
@@ -161,80 +306,6 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
 
     @Override
     public boolean canUpdate()
-    {
-        return true;
-    }
-
-    @Override
-    public void updateEntity()
-    {
-        super.updateEntity();
-        if (worldObj.isRemote) return;
-
-        tick++;
-        if (tick % 5 != 0) return;
-        tick = 0;
-
-        if (worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord)) return;
-
-        if (recipe != null && requiredItems != null)
-        {
-            List<ItemStack> input = Helper.getList(inventoryIn);
-            if (Helper.containsEnoughAll(input, requiredItems) && Helper.hasSpaceFor(inventoryOut, getOutput()))
-            {
-                Helper.removeFromInventory(inventoryIn, requiredItems);
-                Helper.addToInventory(inventoryOut, getOutput());
-            }
-        }
-    }
-
-    public void updateRecipe()
-    {
-        recipe = Helper.findMatchingRecipe(inventoryMatrix, worldObj);
-        if (recipe != null)
-        {
-            requiredItems = Helper.getList(inventoryMatrix);
-        }
-        else
-        {
-            requiredItems = null;
-        }
-    }
-
-    public ItemStack getOutput()
-    {
-        if (recipe == null) return null;
-        return recipe.getRecipeOutput().copy();
-    }
-
-    @Override
-    public boolean isItemValidForSlot(int slot, ItemStack stack)
-    {
-        multiInventory.isItemValidForSlot(slot, stack);
-        return true;
-    }
-
-    @Override
-    public int[] getAccessibleSlotsFromSide(int var1)
-    {
-        return SLOTS_IO;
-    }
-
-    @Override
-    public boolean canInsertItem(int slot, ItemStack stack, int side)
-    {
-        for (int i : SLOTS_IN) if (i == slot) return isItemValidForSlot(slot, stack);
-        return false;
-    }
-
-    @Override
-    public boolean canExtractItem(int slot, ItemStack stack, int side)
-    {
-        for (int i : SLOTS_OUT) if (i == slot) return true;
-        return false;
-    }
-
-    public boolean canInteractWith(EntityPlayer par1EntityPlayer)
     {
         return true;
     }
