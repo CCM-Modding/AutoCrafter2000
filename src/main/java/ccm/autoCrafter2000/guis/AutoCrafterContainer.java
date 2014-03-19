@@ -1,4 +1,6 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2014 Dries K. Aka Dries007 and the CCM modding crew.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -80,14 +82,6 @@ public class AutoCrafterContainer extends Container
         tile.updateRecipe();
         if (tile.recipe == null)    tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, null);
         else                        tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput());
-    }
-
-    /**
-     * Called when the container is closed.
-     */
-    public void onContainerClosed(EntityPlayer par1EntityPlayer)
-    {
-        super.onContainerClosed(par1EntityPlayer);
     }
 
     public boolean canInteractWith(EntityPlayer par1EntityPlayer)

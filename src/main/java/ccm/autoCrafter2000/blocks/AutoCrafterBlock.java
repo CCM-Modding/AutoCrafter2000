@@ -1,4 +1,6 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2014 Dries K. Aka Dries007 and the CCM modding crew.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -34,7 +36,6 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
@@ -53,8 +54,8 @@ import net.minecraft.world.World;
 public class AutoCrafterBlock extends BlockContainer
 {
     public static AutoCrafterBlock instance;
-    private       Icon[]           icons        = new Icon[6];
-    private       String[]         icon_names   = {"_bottom", "_top", "_side", "_side1", "_side2", "_side3"};
+    private final Icon[]   icons      = new Icon[6];
+    private final String[] icon_names = {"_bottom", "_top", "_side", "_side1", "_side2", "_side3"};
 
     public AutoCrafterBlock(int par1)
     {
@@ -64,16 +65,10 @@ public class AutoCrafterBlock extends BlockContainer
         GameRegistry.registerBlock(this, "AutoCrafterBlock");
         GameRegistry.registerTileEntity(AutoCrafterTile.class, "AutoCrafterTile");
         LanguageRegistry.addName(this, "AutoCrafter");
-        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chest,         'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
-        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chestTrapped,  'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
+        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chest, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
+        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chestTrapped, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
 
         instance = this;
-    }
-
-    @Override
-    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack)
-    {
-        super.onBlockPlacedBy(world, x, y, z, entity, stack);
     }
 
     @Override
@@ -112,7 +107,7 @@ public class AutoCrafterBlock extends BlockContainer
     @SideOnly(Side.CLIENT)
     public void registerIcons(IconRegister iconRegister)
     {
-        for (int i = 0; i < icons.length; i ++) icons[i] = iconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter" + icon_names[i]);
+        for (int i = 0; i < icons.length; i++) icons[i] = iconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter" + icon_names[i]);
     }
 
     public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side)

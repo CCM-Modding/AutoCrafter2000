@@ -1,4 +1,6 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2014 Dries K. Aka Dries007 and the CCM modding crew.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -46,34 +48,34 @@ import java.util.List;
 public class AutoCrafterTile extends TileEntity implements ISidedInventory
 {
     // NBT data
-    public static final String INV_RESULT = "result";
-    public static final String INV_MATRIX = "matrix";
-    public static final String INV_IN     = "in";
-    public static final String INV_OUT    = "out";
+    private static final String INV_RESULT = "result";
+    private static final String INV_MATRIX = "matrix";
+    private static final String INV_IN     = "in";
+    private static final String INV_OUT    = "out";
 
     // Slots
-    public static final int   SLOT_OUT     = 0;
-    public static final int   MATRIX       = 3 * 3;
-    public static final int[] SLOTS_MATRIX = InventoryHelper.slotArray(SLOT_OUT, MATRIX);
-    public static final int   IN           = 3 * 3;
-    public static final int   OUT          = 3 * 3;
-    public static final int[] SLOTS_IN     = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1, IN);
-    public static final int[] SLOTS_OUT    = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1 + IN, OUT);
-    public static final int[] SLOTS_IO     = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1, IN + OUT);
+    public static final  int   SLOT_OUT     = 0;
+    private static final int   MATRIX       = 3 * 3;
+    private static final int[] SLOTS_MATRIX = InventoryHelper.slotArray(SLOT_OUT, MATRIX);
+    private static final int   IN           = 3 * 3;
+    private static final int   OUT          = 3 * 3;
+    private static final int[] SLOTS_IN     = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1, IN);
+    private static final int[] SLOTS_OUT    = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1 + IN, OUT);
+    private static final int[] SLOTS_IO     = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1, IN + OUT);
 
     // Inventories this block is made out of, the multi one is used for the ISidedInventory
-    public InventoryCraftResult inventoryCraftResult = new InventoryCraftResult();
-    public InventoryCrafting    inventoryMatrix      = InventoryHelper.newCraftingMatrix(MATRIX, 1);
-    public InventoryCrafting    inventoryIn          = InventoryHelper.newCraftingMatrix(MATRIX, 64);
-    public InventoryBasic       inventoryOut         = new InventoryBasic("AutoCrafter_out", true, OUT);
-    public MultiInventory       multiInventory       = new MultiInventory(inventoryCraftResult, inventoryMatrix, inventoryIn, inventoryOut);
+    public final  InventoryCraftResult inventoryCraftResult = new InventoryCraftResult();
+    public final  InventoryCrafting    inventoryMatrix      = InventoryHelper.newCraftingMatrix(MATRIX, 1);
+    public final  InventoryCrafting    inventoryIn          = InventoryHelper.newCraftingMatrix(MATRIX, 64);
+    public final  InventoryBasic       inventoryOut         = new InventoryBasic("AutoCrafter_out", true, OUT);
+    private final MultiInventory       multiInventory       = new MultiInventory(inventoryCraftResult, inventoryMatrix, inventoryIn, inventoryOut);
 
     // Other variables
-    public IRecipe          recipe;
-    private int             tick = 0;
-    public InternalPlayer   internalPlayer;
-    public SlotCrafting     craftSlot;
-    public List<ItemStack>  overflow = new LinkedList<ItemStack>();
+    public IRecipe recipe;
+    private int tick = 0;
+    private InternalPlayer internalPlayer;
+    private SlotCrafting   craftSlot;
+    private final List<ItemStack> overflow = new LinkedList<ItemStack>();
 
     @Override
     public void updateEntity()

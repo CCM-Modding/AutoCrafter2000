@@ -1,4 +1,6 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2014 Dries K. Aka Dries007 and the CCM modding crew.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -34,12 +36,11 @@ import java.io.File;
  */
 public class Config
 {
-    Configuration configuration;
     public int blockAutoCrafterID = 1655;
 
     public Config(File file)
     {
-        configuration = new Configuration(file);
+        Configuration configuration = new Configuration(file);
 
         blockAutoCrafterID = configuration.getBlock("blockAutoCrafterID", blockAutoCrafterID).getInt();
 

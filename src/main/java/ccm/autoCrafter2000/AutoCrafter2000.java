@@ -1,4 +1,6 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2014 Dries K. Aka Dries007 and the CCM modding crew.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
