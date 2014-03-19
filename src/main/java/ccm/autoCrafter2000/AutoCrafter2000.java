@@ -50,14 +50,12 @@ public class AutoCrafter2000
 
     private Config config;
 
-    private AutoCrafterBlock autoCrafterBlock;
-
     @Mod.EventHandler()
     public void event(FMLPreInitializationEvent event)
     {
         config = new Config(event.getSuggestedConfigurationFile());
 
-        autoCrafterBlock = new AutoCrafterBlock(config.blockAutoCrafterID);
+        new AutoCrafterBlock(config.blockAutoCrafterID);
     }
 
     @Mod.EventHandler()
