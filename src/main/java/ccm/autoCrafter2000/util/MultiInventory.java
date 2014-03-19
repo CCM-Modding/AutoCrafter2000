@@ -8,6 +8,10 @@ import java.util.ArrayList;
 
 /**
  * Thanks for this Buildcraft.
+ * Makes managing multiple inventories in block easy.
+ *
+ * @see ccm.autoCrafter2000.tile.AutoCrafterTile#multiInventory
+ * @author Dries007
  */
 public class MultiInventory implements IInventory
 {

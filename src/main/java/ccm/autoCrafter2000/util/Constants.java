@@ -21,9 +21,13 @@
 
 package ccm.autoCrafter2000.util;
 
+/**
+ * Useful mod wide constants
+ *
+ * @author Dries007
+ */
 public class Constants
 {
-    public static final String MODID = "AutoCrafter2000";
-
-    public static final int GuiID_AutoCrafter = 1;
+    public static final String  MODID =             "AutoCrafter2000";
+    public static final int     GuiID_AutoCrafter = 1;
 }

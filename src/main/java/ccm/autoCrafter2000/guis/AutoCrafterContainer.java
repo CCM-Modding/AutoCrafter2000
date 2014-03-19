@@ -29,6 +29,11 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
 
+/**
+ * The container for the autocrafter.
+ *
+ * @author Dries007
+ */
 public class AutoCrafterContainer extends Container
 {
     public final AutoCrafterTile tile;
@@ -37,48 +42,12 @@ public class AutoCrafterContainer extends Container
     public AutoCrafterContainer(EntityPlayer player, AutoCrafterTile te)
     {
         tile = te;
-        this.addSlotToContainer(new SlotCrafting(player, tile.inventoryMatrix, tile.inventoryCraftResult, AutoCrafterTile.SLOT_OUT, 124, 35));
-
-        // The recipe part
-        for (int y = 0; y < 3; y++)
-        {
-            for (int x = 0; x < 3; x++)
-            {
-                this.addSlotToContainer(new Slot(tile.inventoryMatrix, x + y * 3, 30 + x * 18, 17 + y * 18));
-            }
-        }
-
-        // Input
-        for (int y = 0; y < 3; y++)
-        {
-            for (int x = 0; x < 3; x++)
-            {
-                this.addSlotToContainer(new Slot(tile.inventoryIn, x + y * 3, 26 + x * 18, 84 + y * 18));
-            }
-        }
-
-        // Output
-        for (int y = 0; y < 3; y++)
-        {
-            for (int x = 0; x < 3; x++)
-            {
-                this.addSlotToContainer(new Slot(tile.inventoryOut, x + y * 3, 98 + x * 18, 84 + y * 18));
-            }
-        }
-
-        for (int y = 0; y < 3; y++)
-        {
-            for (int x = 0; x < 9; x++)
-            {
-                addSlotToContainer(new Slot(player.inventory, x + y * 9 + 9, 8 + x * 18, 149 + y * 18));
-            }
-        }
-
-        for (int x = 0; x < 9; x++)
-        {
-            addSlotToContainer(new Slot(player.inventory, x, 8 + x * 18, 207));
-        }
-
+        this.addSlotToContainer(new SlotCrafting(player, tile.inventoryMatrix, tile.inventoryCraftResult, AutoCrafterTile.SLOT_OUT, 124, 35));                          // Recipe output
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryMatrix,  x + y * 3,      30 + x * 18,    17 + y * 18));  // The recipe matrix
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryIn,      x + y * 3,      26 + x * 18,    84 + y * 18));  // Input
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryOut,     x + y * 3,      98 + x * 18,    84 + y * 18));  // Output
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 9; x++) this.addSlotToContainer(new Slot(player.inventory,      x + y * 9 + 9,  8 + x * 18,     149 + y * 18)); // Player inventory
+        for (int x = 0; x < 9; x++)                             this.addSlotToContainer(new Slot(player.inventory,      x,              8 + x * 18,     207));          // Player hotbar
         this.onCraftMatrixChanged(tile);
     }
 
@@ -109,8 +78,8 @@ public class AutoCrafterContainer extends Container
     {
         super.onCraftMatrixChanged(par1IInventory);
         tile.updateRecipe();
-        if (tile.recipe == null) tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, null);
-        else tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput());
+        if (tile.recipe == null)    tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, null);
+        else                        tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput());
     }
 
     /**
@@ -137,30 +106,12 @@ public class AutoCrafterContainer extends Container
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
 
-            if (par2 < 10)
-            {
-                return null;
-            }
-            else if (par2 < 28)
-            {
-                if (!this.mergeItemStack(itemstack1, 28, this.inventorySlots.size(), true))
-                {
-                    return null;
-                }
-            }
-            else if (!this.mergeItemStack(itemstack1, 10, 28, false))
-            {
-                return null;
-            }
+            if (par2 < 10) return null; // Don't shift click into the crafting matrix
+            else if (par2 < 28) if (!this.mergeItemStack(itemstack1, 28, this.inventorySlots.size(), true)) return null; // inventory to I & O
+            else if (!this.mergeItemStack(itemstack1, 10, 28, false)) return null; // I & O to inventory
 
-            if (itemstack1.stackSize == 0)
-            {
-                slot.putStack(null);
-            }
-            else
-            {
-                slot.onSlotChanged();
-            }
+            if (itemstack1.stackSize == 0) slot.putStack(null);
+            else slot.onSlotChanged();
         }
 
         return itemstack;

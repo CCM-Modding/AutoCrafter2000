@@ -25,6 +25,13 @@ import net.minecraftforge.common.Configuration;
 
 import java.io.File;
 
+/**
+ * Config file
+ * Contains ModID.
+ *
+ * @see ccm.autoCrafter2000.AutoCrafter2000#getConfig()
+ * @author Dries007
+ */
 public class Config
 {
     Configuration configuration;

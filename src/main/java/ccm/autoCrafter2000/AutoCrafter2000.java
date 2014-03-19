@@ -33,6 +33,11 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 
 import static ccm.autoCrafter2000.util.Constants.MODID;
 
+/**
+ * The main mod class
+ *
+ * @author Dries007
+ */
 @Mod(modid = MODID, dependencies = "required-after:NucleumOmnium")
 @NetworkMod(clientSideRequired = true)
 public class AutoCrafter2000
@@ -59,8 +64,6 @@ public class AutoCrafter2000
     public void event(FMLInitializationEvent event)
     {
         NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
-
-
     }
 
     public static String getVersion()
@@ -68,8 +71,8 @@ public class AutoCrafter2000
         return instance.metadata.version;
     }
 
-    public Config getConfig()
+    public static Config getConfig()
     {
-        return config;
+        return instance.config;
     }
 }

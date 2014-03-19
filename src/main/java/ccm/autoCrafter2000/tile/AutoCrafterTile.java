@@ -21,8 +21,8 @@
 
 package ccm.autoCrafter2000.tile;
 
-import ccm.autoCrafter2000.util.Helper;
 import ccm.autoCrafter2000.util.MultiInventory;
+import ccm.nucleumOmnium.helpers.InventoryHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
@@ -37,33 +37,43 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * This is where the magic happens.
+ * Thanks to Buildcraft for some handy code.
+ *
+ * @author Dries007
+ */
 public class AutoCrafterTile extends TileEntity implements ISidedInventory
 {
+    // NBT data
     public static final String INV_RESULT = "result";
     public static final String INV_MATRIX = "matrix";
     public static final String INV_IN     = "in";
     public static final String INV_OUT    = "out";
 
+    // Slots
     public static final int   SLOT_OUT     = 0;
     public static final int   MATRIX       = 3 * 3;
-    public static final int[] SLOTS_MATRIX = Helper.slotArray(SLOT_OUT, MATRIX);
+    public static final int[] SLOTS_MATRIX = InventoryHelper.slotArray(SLOT_OUT, MATRIX);
     public static final int   IN           = 3 * 3;
     public static final int   OUT          = 3 * 3;
-    public static final int[] SLOTS_IN     = Helper.slotArray(SLOTS_MATRIX.length + 1, IN);
-    public static final int[] SLOTS_OUT    = Helper.slotArray(SLOTS_MATRIX.length + 1 + IN, OUT);
-    public static final int[] SLOTS_IO     = Helper.slotArray(SLOTS_MATRIX.length + 1, IN + OUT);
+    public static final int[] SLOTS_IN     = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1, IN);
+    public static final int[] SLOTS_OUT    = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1 + IN, OUT);
+    public static final int[] SLOTS_IO     = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1, IN + OUT);
 
+    // Inventories this block is made out of, the multi one is used for the ISidedInventory
     public InventoryCraftResult inventoryCraftResult = new InventoryCraftResult();
-    public InventoryCrafting    inventoryMatrix      = Helper.newCraftingMatrix(MATRIX, 1);
-    public InventoryCrafting    inventoryIn          = Helper.newCraftingMatrix(MATRIX, 64);
+    public InventoryCrafting    inventoryMatrix      = InventoryHelper.newCraftingMatrix(MATRIX, 1);
+    public InventoryCrafting    inventoryIn          = InventoryHelper.newCraftingMatrix(MATRIX, 64);
     public InventoryBasic       inventoryOut         = new InventoryBasic("AutoCrafter_out", true, OUT);
     public MultiInventory       multiInventory       = new MultiInventory(inventoryCraftResult, inventoryMatrix, inventoryIn, inventoryOut);
 
-    public IRecipe recipe;
-    private int tick = 0;
-    public InternalPlayer internalPlayer;
-    public SlotCrafting   craftSlot;
-    public List<ItemStack> overflow = new LinkedList<ItemStack>();
+    // Other variables
+    public IRecipe          recipe;
+    private int             tick = 0;
+    public InternalPlayer   internalPlayer;
+    public SlotCrafting     craftSlot;
+    public List<ItemStack>  overflow = new LinkedList<ItemStack>();
 
     @Override
     public void updateEntity()
@@ -97,22 +107,22 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
             if (result == null) return;
             result = result.copy();
 
-            if (Helper.hasSpaceFor(inventoryOut, result))
+            if (InventoryHelper.hasSpaceFor(inventoryOut, result))
             {
                 craftSlot.onPickupFromSlot(internalPlayer, result);
 
-                ItemStack stack = Helper.addToInventory(inventoryOut, result);
+                ItemStack stack = InventoryHelper.addToInventory(inventoryOut, result);
                 if (stack != null) overflow.add(stack);
 
                 for (int i = 0; i < internalPlayer.inventory.getSizeInventory(); i++)
                 {
-                    stack = Helper.addToInventory(inventoryOut, internalPlayer.inventory.getStackInSlotOnClosing(i));
+                    stack = InventoryHelper.addToInventory(inventoryOut, internalPlayer.inventory.getStackInSlotOnClosing(i));
                     if (stack != null) overflow.add(stack);
                 }
             }
         }
     }
-    
+
     private void emptyOverflow()
     {
         Iterator<ItemStack> iterator = overflow.iterator();
@@ -120,9 +130,9 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         while (iterator.hasNext())
         {
             ItemStack stack = iterator.next();
-            if (Helper.hasSpaceFor(inventoryOut, stack))
+            if (InventoryHelper.hasSpaceFor(inventoryOut, stack))
             {
-                Helper.addToInventory(inventoryOut, stack);
+                InventoryHelper.addToInventory(inventoryOut, stack);
                 iterator.remove();
             }
         }
@@ -130,17 +140,16 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
 
     public void updateRecipe()
     {
-        recipe = Helper.findMatchingRecipe(inventoryMatrix, worldObj);
+        recipe = InventoryHelper.findMatchingRecipe(inventoryMatrix, worldObj);
     }
 
+    /**
+     * If slot is an input slot, check to see if it matches the recipe.
+     */
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack)
     {
-        for (int i : SLOTS_IN)
-            if (i == slot)
-            {
-                return Helper.canStacksMerge(stack, multiInventory.getStackInSlot(i - IN), false);
-            }
+        for (int i : SLOTS_IN) if (i == slot) return InventoryHelper.canStacksMerge(stack, multiInventory.getStackInSlot(i - IN), false);
         return multiInventory.isItemValidForSlot(slot, stack);
     }
 
@@ -174,7 +183,6 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
      */
     private final class InternalPlayer extends EntityPlayer
     {
-
         public InternalPlayer()
         {
             super(AutoCrafterTile.this.worldObj, "[AutoCrafterTile]");
@@ -184,9 +192,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         }
 
         @Override
-        public void sendChatToPlayer(ChatMessageComponent var1)
-        {
-        }
+        public void sendChatToPlayer(ChatMessageComponent var1) {}
 
         @Override
         public boolean canCommandSenderUseCommand(int var1, String var2)
@@ -205,10 +211,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     /**
      * Start boring interface / TE code
      */
-    public AutoCrafterTile()
-    {
-
-    }
+    public AutoCrafterTile() {}
 
     public AutoCrafterTile(World world)
     {
@@ -271,25 +274,19 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     }
 
     @Override
-    public void openChest()
-    {
-
-    }
+    public void openChest() {}
 
     @Override
-    public void closeChest()
-    {
-
-    }
+    public void closeChest() {}
 
     @Override
     public void readFromNBT(NBTTagCompound data)
     {
         super.readFromNBT(data);
-        Helper.readInvFromNBT(inventoryCraftResult, INV_RESULT, data);
-        Helper.readInvFromNBT(inventoryMatrix, INV_MATRIX, data);
-        Helper.readInvFromNBT(inventoryIn, INV_IN, data);
-        Helper.readInvFromNBT(inventoryOut, INV_OUT, data);
+        InventoryHelper.readInvFromNBT(inventoryCraftResult, INV_RESULT, data);
+        InventoryHelper.readInvFromNBT(inventoryMatrix, INV_MATRIX, data);
+        InventoryHelper.readInvFromNBT(inventoryIn, INV_IN, data);
+        InventoryHelper.readInvFromNBT(inventoryOut, INV_OUT, data);
 
         updateRecipe(); // Must update after load.
     }
@@ -298,10 +295,10 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     public void writeToNBT(NBTTagCompound data)
     {
         super.writeToNBT(data);
-        Helper.writeInvToNBT(inventoryCraftResult, INV_RESULT, data);
-        Helper.writeInvToNBT(inventoryMatrix, INV_MATRIX, data);
-        Helper.writeInvToNBT(inventoryIn, INV_IN, data);
-        Helper.writeInvToNBT(inventoryOut, INV_OUT, data);
+        InventoryHelper.writeInvToNBT(inventoryCraftResult, INV_RESULT, data);
+        InventoryHelper.writeInvToNBT(inventoryMatrix, INV_MATRIX, data);
+        InventoryHelper.writeInvToNBT(inventoryIn, INV_IN, data);
+        InventoryHelper.writeInvToNBT(inventoryOut, INV_OUT, data);
     }
 
     @Override

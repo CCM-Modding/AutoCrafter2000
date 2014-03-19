@@ -28,6 +28,12 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
+/**
+ * The gui for the autocrafter.
+ *
+ * @see ccm.autoCrafter2000.guis.AutoCrafterContainer
+ * @author Dries007
+ */
 public class AutoCrafterGui extends GuiContainer
 {
     private static final ResourceLocation craftingTableGuiTextures = new ResourceLocation("autocrafter2000:textures/gui/autocraftingtable.png");

@@ -29,6 +29,11 @@ import cpw.mods.fml.common.network.IGuiHandler;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
+/**
+ * FML Gui handler
+ *
+ * @author Dries007
+ */
 public class GuiHandler implements IGuiHandler
 {
     @Override

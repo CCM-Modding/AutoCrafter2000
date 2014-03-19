@@ -24,7 +24,7 @@ package ccm.autoCrafter2000.blocks;
 import ccm.autoCrafter2000.AutoCrafter2000;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import ccm.autoCrafter2000.util.Constants;
-import ccm.autoCrafter2000.util.Helper;
+import ccm.nucleumOmnium.helpers.InventoryHelper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -45,27 +45,27 @@ import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+/**
+ * The block class, contains instance and registers name, recipes and tile entity.
+ *
+ * @author Dries007
+ */
 public class AutoCrafterBlock extends BlockContainer
 {
     public static AutoCrafterBlock instance;
-    private       Icon             icoBottom;
-    private       Icon             icoSide;
-    private       Icon             icoTop;
+    private       Icon[]           icons        = new Icon[6];
+    private       String[]         icon_names   = {"_bottom", "_top", "_side", "_side1", "_side2", "_side3"};
 
     public AutoCrafterBlock(int par1)
     {
         super(par1, Material.iron);
-        setHardness(5.0F);
-        setResistance(10.0F);
-        setStepSound(soundMetalFootstep);
-        setUnlocalizedName("AutoCrafter");
-        setCreativeTab(CreativeTabs.tabMisc);
+        setHardness(5.0F).setResistance(10.0F).setStepSound(soundMetalFootstep).setUnlocalizedName("AutoCrafter").setCreativeTab(CreativeTabs.tabMisc);
 
         GameRegistry.registerBlock(this, "AutoCrafterBlock");
         GameRegistry.registerTileEntity(AutoCrafterTile.class, "AutoCrafterTile");
         LanguageRegistry.addName(this, "AutoCrafter");
-        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chest, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
-        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chestTrapped, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
+        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chest,         'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
+        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chestTrapped,  'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
 
         instance = this;
     }
@@ -80,7 +80,7 @@ public class AutoCrafterBlock extends BlockContainer
     public void breakBlock(World world, int x, int y, int z, int par5, int par6)
     {
         TileEntity te = world.getBlockTileEntity(x, y, z);
-        if (te instanceof IInventory) Helper.dropItems(world, (IInventory) te, x, y, z);
+        if (te instanceof IInventory) InventoryHelper.dropItems(world, (IInventory) te, x, y, z);
 
         super.breakBlock(world, x, y, z, par5, par6);
     }
@@ -91,7 +91,6 @@ public class AutoCrafterBlock extends BlockContainer
         super.onBlockActivated(world, x, y, z, entityplayer, side, hitX, hitY, hitZ);
 
         if (entityplayer.isSneaking()) return false;
-
         if (!world.isRemote) entityplayer.openGui(AutoCrafter2000.instance, Constants.GuiID_AutoCrafter, world, x, y, z);
 
         return true;
@@ -106,24 +105,14 @@ public class AutoCrafterBlock extends BlockContainer
     @Override
     public Icon getIcon(int i, int j)
     {
-        switch (i)
-        {
-            case 0:
-                return icoBottom;
-            case 1:
-                return icoTop;
-            default:
-                return icoSide;
-        }
+        return icons[i];
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void registerIcons(IconRegister par1IconRegister)
+    public void registerIcons(IconRegister iconRegister)
     {
-        icoBottom = par1IconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter_bottom");
-        icoSide = par1IconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter_side");
-        icoTop = par1IconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter_top");
+        for (int i = 0; i < icons.length; i ++) icons[i] = iconRegister.registerIcon(Constants.MODID.toLowerCase() + ":autoCrafter" + icon_names[i]);
     }
 
     public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side)
