@@ -7,7 +7,7 @@
     "version": "${version}",
     "mcversion": "${mcversion}",
     "url": "https://github.com/CCM-Modding/AutoCrafter2000",
-    "authors": [ "dries007" ],
+    "authors": [ "Dries007" ],
     "credits": "Claycorp for idea, BC for code example.",
     "requiredMods": [
         "Forge",

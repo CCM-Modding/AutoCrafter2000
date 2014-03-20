@@ -36,16 +36,16 @@ minecraft {
 
 ext.BUILD_NUMBER = System.getenv().BUILD_NUMBER;
 if (ext.BUILD_NUMBER == null) ext.BUILD_NUMBER = "0"
-version = project.minecraft.minecraftVersion + "-" + version + "." + ext.BUILD_NUMBER
+version = version + "." + ext.BUILD_NUMBER
 
 dependencies {
-    compile("ccm.nucleumOmnium:NucleumOmnium:" + project.minecraft.minecraftVersion + "-2.+:dev")
+    compile("ccm.nucleumOmnium:NucleumOmnium:" + project.minecraft.minecraftVersion + "-+:dev")
 }
 
 processResources {
     from(sourceSets.main.resources.srcDirs) {
         include '**/*.info'
-        expand 'version':project.version, 'mcversion':project.minecraft.minecraftVersion, 'nucleumOmniumVersion':configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.findAll({ it.moduleName == "NucleumOmnium"}).collect({ it.moduleVersion})[0]
+        expand 'version':project.version, 'mcversion':project.minecraft.minecraftVersion, 'nucleumOmniumVersion':configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.findAll({ it.moduleName == "NucleumOmnium"}).collect({ it.moduleVersion})[0].split("-")[1]
     }
 
     from(sourceSets.main.resources.srcDirs) {
@@ -56,11 +56,17 @@ processResources {
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     classifier = 'dev-src'
+    appendix = project.minecraft.minecraftVersion
 }
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-	classifier = 'dev'
+    classifier = 'dev'
+    appendix = project.minecraft.minecraftVersion
+}
+
+jar {
+    appendix = project.minecraft.minecraftVersion
 }
 
 artifacts {
@@ -77,7 +83,7 @@ uploadArchives {
             }
             pom {
                 groupId = project.group
-                version = project.version
+                version = project.minecraft.minecraftVersion + "-" + project.version
                 artifactId = project.archivesBaseName
                 project {
                     name project.archivesBaseName
