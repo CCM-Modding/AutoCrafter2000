@@ -40,7 +40,7 @@ import static ccm.autoCrafter2000.util.Constants.MODID;
  *
  * @author Dries007
  */
-@Mod(modid = MODID, dependencies = "required-after:NucleumOmnium")
+@Mod(modid = MODID, useMetadata = true)
 @NetworkMod(clientSideRequired = true)
 public class AutoCrafter2000
 {

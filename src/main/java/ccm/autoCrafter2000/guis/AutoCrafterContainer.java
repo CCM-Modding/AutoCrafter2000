@@ -81,7 +81,7 @@ public class AutoCrafterContainer extends Container
         super.onCraftMatrixChanged(par1IInventory);
         tile.updateRecipe();
         if (tile.recipe == null)    tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, null);
-        else                        tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput());
+        else                        tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput().copy());
     }
 
     public boolean canInteractWith(EntityPlayer par1EntityPlayer)
@@ -91,6 +91,7 @@ public class AutoCrafterContainer extends Container
 
     public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int par2)
     {
+        if (true) return null;
         ItemStack itemstack = null;
 
         Slot slot = (Slot) this.inventorySlots.get(par2);

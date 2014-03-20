@@ -45,7 +45,7 @@ dependencies {
 processResources {
     from(sourceSets.main.resources.srcDirs) {
         include '**/*.info'
-        expand 'version':project.version, 'mcversion':project.minecraft.minecraftVersion
+        expand 'version':project.version, 'mcversion':project.minecraft.minecraftVersion, 'nucleumOmniumVersion':configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.findAll({ it.moduleName == "NucleumOmnium"}).collect({ it.moduleVersion})[0]
     }
 
     from(sourceSets.main.resources.srcDirs) {
