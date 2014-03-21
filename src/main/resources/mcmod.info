@@ -11,7 +11,11 @@
     "credits": "Claycorp for idea, BC for code example.",
     "requiredMods": [
         "Forge",
-        "NucleumOmnium@[${nucleumOmniumVersion},)" ],
+        "NucleumOmnium" 
+    ],
+    "dependencies": [ 
+        "NucleumOmnium@[${nucleumOmniumVersion},)"
+    ],
     "useDependencyInformation": "true"
   }]
 }
