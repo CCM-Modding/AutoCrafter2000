@@ -24,11 +24,19 @@
 package ccm.autoCrafter2000.guis;
 
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
+import com.google.common.base.Joiner;
+import cpw.mods.fml.common.network.PacketDispatcher;
+import net.minecraft.block.Block;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
+
+import static ccm.autoCrafter2000.util.Constants.CHANNEL_RMU;
 
 /**
  * The gui for the autocrafter.
@@ -38,13 +46,42 @@ import org.lwjgl.opengl.GL11;
  */
 public class AutoCrafterGui extends GuiContainer
 {
+    private static final int ID_REDSTONE = 0;
     private static final ResourceLocation craftingTableGuiTextures = new ResourceLocation("autocrafter2000:textures/gui/autocraftingtable.png");
+
+    public GuiButtonItemStack redstonebutton;
 
     public AutoCrafterGui(EntityPlayer player, World world, int x, int y, int z)
     {
         super(new AutoCrafterContainer(player, (AutoCrafterTile) world.getBlockTileEntity(x, y, z)));
         this.ySize = 230;
     }
+
+    public void initGui()
+    {
+        super.initGui();
+        //noinspection unchecked
+        this.buttonList.add(redstonebutton = new GuiButtonItemStack(ID_REDSTONE, width/2 + 64, height/2 - 111, new ItemStack(Item.redstone), new ItemStack(Block.torchRedstoneActive), new ItemStack(Block.torchRedstoneIdle)));
+        setRedstonebutton();
+    }
+
+    public void setRedstonebutton()
+    {
+        if (redstonebutton == null) return;
+        redstonebutton.item = ((AutoCrafterContainer) this.inventorySlots).tile.redstoneMode;
+    }
+
+    protected void actionPerformed(GuiButton button)
+    {
+        if (button.id == ID_REDSTONE)
+        {
+            AutoCrafterTile tile = ((AutoCrafterContainer) this.inventorySlots).tile;
+            redstonebutton.item = tile.redstoneMode = (tile.redstoneMode + 1) % 3;
+
+            PacketDispatcher.sendPacketToServer(PacketDispatcher.getPacket(CHANNEL_RMU, Joiner.on(";").join(tile.xCoord, tile.yCoord, tile.zCoord, tile.redstoneMode).getBytes()));
+        }
+    }
+
 
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items)

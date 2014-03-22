@@ -73,6 +73,12 @@ public class AutoCrafterContainer extends Container
         }
     }
 
+    @Override
+    public void onContainerClosed(EntityPlayer par1EntityPlayer)
+    {
+        super.onContainerClosed(par1EntityPlayer);
+    }
+
     /**
      * Callback for when the crafting matrix is changed.
      */

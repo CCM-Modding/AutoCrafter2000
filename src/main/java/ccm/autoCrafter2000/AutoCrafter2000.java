@@ -24,8 +24,11 @@
 package ccm.autoCrafter2000;
 
 import ccm.autoCrafter2000.blocks.AutoCrafterBlock;
+import ccm.autoCrafter2000.buildcraft.BuildcraftHelper;
 import ccm.autoCrafter2000.network.GuiHandler;
+import ccm.autoCrafter2000.network.PacketHandler;
 import ccm.autoCrafter2000.util.Config;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -33,6 +36,9 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
 
+import java.util.logging.Logger;
+
+import static ccm.autoCrafter2000.util.Constants.CHANNEL_RMU;
 import static ccm.autoCrafter2000.util.Constants.MODID;
 
 /**
@@ -41,7 +47,7 @@ import static ccm.autoCrafter2000.util.Constants.MODID;
  * @author Dries007
  */
 @Mod(modid = MODID, useMetadata = true)
-@NetworkMod(clientSideRequired = true)
+@NetworkMod(clientSideRequired = true, packetHandler = PacketHandler.class, channels = { CHANNEL_RMU })
 public class AutoCrafter2000
 {
     @Mod.Instance(MODID)
@@ -51,10 +57,12 @@ public class AutoCrafter2000
     private ModMetadata metadata;
 
     private Config config;
+    private Logger logger;
 
     @Mod.EventHandler()
     public void event(FMLPreInitializationEvent event)
     {
+        logger = event.getModLog();
         config = new Config(event.getSuggestedConfigurationFile());
 
         new AutoCrafterBlock(config.blockAutoCrafterID);
@@ -64,6 +72,7 @@ public class AutoCrafter2000
     public void event(FMLInitializationEvent event)
     {
         NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
+        if (Loader.isModLoaded("BuildCraft|Core")) BuildcraftHelper.init();
     }
 
     public static String getVersion()
@@ -74,5 +83,10 @@ public class AutoCrafter2000
     public static Config getConfig()
     {
         return instance.config;
+    }
+
+    public static Logger getLogger()
+    {
+        return instance.logger;
     }
 }

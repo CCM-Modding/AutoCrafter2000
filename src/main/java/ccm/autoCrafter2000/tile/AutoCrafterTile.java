@@ -30,6 +30,9 @@ import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.INetworkManager;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.Packet132TileEntityData;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.ChunkCoordinates;
@@ -72,7 +75,13 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
 
     // Other variables
     public IRecipe recipe;
-    private int tick = 0;
+    /**
+     * 0 = default  => Stop crafting with redstone signal
+     * 1            => Only craft with redstone signal
+     * 2            => Ignore redstone signal
+     */
+    public  int redstoneMode = 0;
+    private int tick         = 0;
     private InternalPlayer internalPlayer;
     private SlotCrafting   craftSlot;
     private final List<ItemStack> overflow = new LinkedList<ItemStack>();
@@ -95,8 +104,10 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         if (tick % 5 != 0) return;
         tick = 0;
 
-        // If powered, do nothing.
-        if (worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord)) return;
+        // Redstone things
+        boolean powered = worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord);
+        if (redstoneMode == 0 && powered) return;
+        if (redstoneMode == 1 && !powered) return;
 
         // Deal with overflow. If we couldn't empty, don't make new stuff.
         emptyOverflow();
@@ -138,6 +149,20 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
                 iterator.remove();
             }
         }
+    }
+
+    @Override
+    public Packet getDescriptionPacket()
+    {
+        Packet132TileEntityData packet = new Packet132TileEntityData(xCoord, yCoord, zCoord, 5, new NBTTagCompound());
+        packet.data.setInteger("redstoneMode", redstoneMode);
+        return packet;
+    }
+
+    @Override
+    public void onDataPacket(INetworkManager net, Packet132TileEntityData pkt)
+    {
+        redstoneMode = pkt.data.getInteger("redstoneMode");
     }
 
     public void updateRecipe()
@@ -289,6 +314,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         InventoryHelper.readInvFromNBT(inventoryMatrix, INV_MATRIX, data);
         InventoryHelper.readInvFromNBT(inventoryIn, INV_IN, data);
         InventoryHelper.readInvFromNBT(inventoryOut, INV_OUT, data);
+        redstoneMode = data.getInteger("redstoneMode");
 
         updateRecipe(); // Must update after load.
     }
@@ -301,6 +327,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         InventoryHelper.writeInvToNBT(inventoryMatrix, INV_MATRIX, data);
         InventoryHelper.writeInvToNBT(inventoryIn, INV_IN, data);
         InventoryHelper.writeInvToNBT(inventoryOut, INV_OUT, data);
+        data.setInteger("redstoneMode", redstoneMode);
     }
 
     @Override

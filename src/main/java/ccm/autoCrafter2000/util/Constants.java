@@ -30,6 +30,7 @@ package ccm.autoCrafter2000.util;
  */
 public class Constants
 {
-    public static final String  MODID =             "AutoCrafter2000";
+    public static final String  MODID = "AutoCrafter2000";
     public static final int     GuiID_AutoCrafter = 1;
+    public static final String  CHANNEL_RMU = "AC2000rmu"; // REDSTONE_MODE_UPDATE
 }
