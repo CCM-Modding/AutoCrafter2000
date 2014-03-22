@@ -23,45 +23,43 @@
 
 package ccm.autoCrafter2000.buildcraft;
 
+import buildcraft.api.gates.ActionManager;
+import buildcraft.api.gates.ITrigger;
+import ccm.autoCrafter2000.AutoCrafter2000;
+import ccm.autoCrafter2000.buildcraft.triggers.InventoryTrigger;
+import ccm.autoCrafter2000.buildcraft.triggers.RecipeSetTrigger;
+
+import java.util.LinkedList;
+
 public class BuildcraftHelper
 {
+    private static final LinkedList<ITrigger> triggers = new LinkedList<ITrigger>();
+
     public static void init()
     {
-//        AutoCrafter2000.getLogger().info("BuildCraft compatibility init ...");
-//        try
-//        {
-//            // Add gate conditions
-//            ActionManager.registerTriggerProvider(new ITriggerProvider()
-//            {
-//                @Override
-//                public LinkedList<ITrigger> getPipeTriggers(IPipeTile pipe)
-//                {
-//                    return null;
-//                }
-//
-//                @Override
-//                public LinkedList<ITrigger> getNeighborTriggers(Block block, TileEntity dummyTile)
-//                {
-//                    if (dummyTile instanceof AutoCrafterTile)
-//                    {
-//                        AutoCrafterTile tile = (AutoCrafterTile) dummyTile;
-//
-//                        LinkedList<ITrigger> iTriggers = new LinkedList<ITrigger>();
-//                        iTriggers.add(RecipeSetTrigger.INSTANCE);
-//                        return iTriggers;
-//                    }
-//                    return null;
-//                }
-//            });
-//
-//            ActionManager.registerTrigger(RecipeSetTrigger.INSTANCE);
-//
-//            AutoCrafter2000.getLogger().info("BuildCraft compatibility done.");
-//        }
-//        catch (Exception e)
-//        {
-//            AutoCrafter2000.getLogger().warning("BuildCraft compatibility FAILED.");
-//            e.fillInStackTrace();
-//        }
+        AutoCrafter2000.getLogger().info("BuildCraft compatibility init ...");
+        try
+        {
+            triggers.add(new RecipeSetTrigger());
+            triggers.add(new InventoryTrigger(InventoryTrigger.State.Empty, InventoryTrigger.InventoryType.In));
+            triggers.add(new InventoryTrigger(InventoryTrigger.State.Empty, InventoryTrigger.InventoryType.Out));
+            triggers.add(new InventoryTrigger(InventoryTrigger.State.Full, InventoryTrigger.InventoryType.In));
+            triggers.add(new InventoryTrigger(InventoryTrigger.State.Full, InventoryTrigger.InventoryType.Out));
+            triggers.add(new InventoryTrigger(InventoryTrigger.State.Has_Items, InventoryTrigger.InventoryType.In));
+            triggers.add(new InventoryTrigger(InventoryTrigger.State.Has_Items, InventoryTrigger.InventoryType.Out));
+
+            for (ITrigger trigger : triggers) ActionManager.registerTrigger(trigger);
+            AutoCrafter2000.getLogger().info("BuildCraft compatibility done.");
+        }
+        catch (Exception e)
+        {
+            AutoCrafter2000.getLogger().warning("BuildCraft compatibility FAILED.");
+            e.fillInStackTrace();
+        }
+    }
+
+    public static LinkedList<ITrigger> getAutocrafterTriggers()
+    {
+        return triggers;
     }
 }

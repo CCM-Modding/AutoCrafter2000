@@ -51,6 +51,7 @@ public class AutoCrafterContainer extends Container
         for (int y = 0; y < 3; y++) for (int x = 0; x < 9; x++) this.addSlotToContainer(new Slot(player.inventory,      x + y * 9 + 9,  8 + x * 18,     149 + y * 18)); // Player inventory
         for (int x = 0; x < 9; x++)                             this.addSlotToContainer(new Slot(player.inventory,      x,              8 + x * 18,     207));          // Player hotbar
         this.onCraftMatrixChanged(tile);
+        tile.players.add(player);
     }
 
     @Override
@@ -77,6 +78,7 @@ public class AutoCrafterContainer extends Container
     public void onContainerClosed(EntityPlayer par1EntityPlayer)
     {
         super.onContainerClosed(par1EntityPlayer);
+        tile.players.remove(par1EntityPlayer);
     }
 
     /**

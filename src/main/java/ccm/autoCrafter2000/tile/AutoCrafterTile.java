@@ -23,8 +23,15 @@
 
 package ccm.autoCrafter2000.tile;
 
+import buildcraft.api.gates.IOverrideDefaultTriggers;
+import buildcraft.api.gates.ITrigger;
+import ccm.autoCrafter2000.AutoCrafter2000;
+import ccm.autoCrafter2000.buildcraft.BuildcraftHelper;
 import ccm.autoCrafter2000.util.MultiInventory;
 import ccm.nucleumOmnium.helpers.InventoryHelper;
+import com.google.common.base.Joiner;
+import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.common.network.PacketDispatcher;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
@@ -37,10 +44,14 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import static ccm.autoCrafter2000.util.Constants.BC_MODID;
+import static ccm.autoCrafter2000.util.Constants.CHANNEL_RMU;
 
 /**
  * This is where the magic happens.
@@ -48,7 +59,8 @@ import java.util.List;
  *
  * @author Dries007
  */
-public class AutoCrafterTile extends TileEntity implements ISidedInventory
+@Optional.Interface(iface = "buildcraft.api.gates.IOverrideDefaultTriggers", modid = BC_MODID)
+public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOverrideDefaultTriggers
 {
     // NBT data
     private static final String INV_RESULT = "result";
@@ -85,6 +97,8 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     private InternalPlayer internalPlayer;
     private SlotCrafting   craftSlot;
     private final List<ItemStack> overflow = new LinkedList<ItemStack>();
+    public int crafts = 0;
+    public List<EntityPlayer> players = new LinkedList<EntityPlayer>();
 
     @Override
     public void updateEntity()
@@ -99,38 +113,107 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
             craftSlot = new SlotCrafting(internalPlayer, inventoryIn, inventoryOut, xCoord, yCoord, zCoord);
         }
 
+        boolean willCraft = true;
         // Lower tick rate
         tick++;
-        if (tick % 5 != 0) return;
+        if (AutoCrafter2000.getConfig().craftDelay != 0 && tick % AutoCrafter2000.getConfig().craftDelay != 0) willCraft = false;
         tick = 0;
 
         // Redstone things
         boolean powered = worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord);
-        if (redstoneMode == 0 && powered) return;
-        if (redstoneMode == 1 && !powered) return;
+        if (redstoneMode == 0 && powered) willCraft = false;
+        if (redstoneMode == 1 && !powered) willCraft = false;
 
         // Deal with overflow. If we couldn't empty, don't make new stuff.
         emptyOverflow();
-        if (!overflow.isEmpty()) return;
+        if (!overflow.isEmpty()) willCraft = false;
 
-        // Matches recipes and handle the crafting.
-        if (recipe != null && recipe.matches(inventoryIn, worldObj))
+        ItemStack result = null;
+        if (willCraft && recipe == null) willCraft = false;
+        if (willCraft && !recipe.matches(inventoryIn, worldObj)) willCraft = false;
+        if (willCraft && (result = recipe.getCraftingResult(inventoryIn)) == null) willCraft = false;
+        if (willCraft && !InventoryHelper.hasSpaceFor(inventoryOut, result)) willCraft = false;
+        if (willCraft)
         {
-            ItemStack result = recipe.getCraftingResult(inventoryIn);
-            if (result == null) return;
+            crafts ++;
             result = result.copy();
+            if (AutoCrafter2000.getConfig().updateCraftCountLive) for (EntityPlayer player : players) PacketDispatcher.sendPacketToPlayer(PacketDispatcher.getPacket(CHANNEL_RMU, Joiner.on(";").join(this.xCoord, this.yCoord, this.zCoord, this.redstoneMode, this.crafts).getBytes()), (cpw.mods.fml.common.network.Player) player);
+            craftSlot.onPickupFromSlot(internalPlayer, result);
 
-            if (InventoryHelper.hasSpaceFor(inventoryOut, result))
+            ItemStack stack = InventoryHelper.addToInventory(inventoryOut, result);
+            if (stack != null) overflow.add(stack);
+
+            for (int i = 0; i < internalPlayer.inventory.getSizeInventory(); i++)
             {
-                craftSlot.onPickupFromSlot(internalPlayer, result);
-
-                ItemStack stack = InventoryHelper.addToInventory(inventoryOut, result);
+                stack = InventoryHelper.addToInventory(inventoryOut, internalPlayer.inventory.getStackInSlotOnClosing(i));
                 if (stack != null) overflow.add(stack);
+            }
+        }
+        else reBalanceSlots();
+    }
 
-                for (int i = 0; i < internalPlayer.inventory.getSizeInventory(); i++)
+    public static boolean canStacksMergeWithOreDict(ItemStack stack1, ItemStack stack2, boolean ifNull)
+    {
+        if (InventoryHelper.canStacksMerge(stack1, stack2, ifNull)) return true;
+
+        int id1 = OreDictionary.getOreID(stack1);
+        int id2 = OreDictionary.getOreID(stack2);
+        return id1 != -1 && id1 == id2;
+    }
+
+    /**
+     * Done with 2 sets of loops to prioritize the filling of empty slots
+     */
+    private void reBalanceSlots()
+    {
+        for (int i = 0; i < MATRIX; i ++)
+        {
+            ItemStack craftStack = inventoryMatrix.getStackInSlot(i);
+            if (craftStack == null) continue;
+
+            ItemStack existingStack = inventoryIn.getStackInSlot(i);
+            if (existingStack == null) continue; // If existing stack is null, move on. (Others can fill this stack later.)
+            if (!canStacksMergeWithOreDict(craftStack, existingStack, false)) continue; // If existing stack doesn't match, move on.
+
+            for (int j = 0; j < MATRIX; j++)
+            {
+                craftStack = inventoryMatrix.getStackInSlot(j);
+                if (craftStack == null) continue;
+                if (i == j) continue; // Don't try to merge with yourself...
+
+                ItemStack otherStack = inventoryIn.getStackInSlot(j);
+                if (otherStack == null)
                 {
-                    stack = InventoryHelper.addToInventory(inventoryOut, internalPlayer.inventory.getStackInSlotOnClosing(i));
-                    if (stack != null) overflow.add(stack);
+                    if (existingStack.stackSize == 1) continue; // Prevent derp
+                    inventoryIn.setInventorySlotContents(i, existingStack);
+                    inventoryIn.setInventorySlotContents(j, existingStack.splitStack(1));
+                    return; // Do only 1 per tick
+                }
+            }
+        }
+        for (int i = 0; i < MATRIX; i ++)
+        {
+            ItemStack craftStack = inventoryMatrix.getStackInSlot(i);
+            if (craftStack == null) continue;
+
+            ItemStack existingStack = inventoryIn.getStackInSlot(i);
+            if (existingStack == null) continue; // If existing stack is null, move on. (Others can fill this stack later.)
+            if (!canStacksMergeWithOreDict(craftStack, existingStack, false)) continue; // If existing stack doesn't match, move on.
+
+            for (int j = 0; j < MATRIX; j++)
+            {
+                craftStack = inventoryMatrix.getStackInSlot(j);
+                if (craftStack == null) continue;
+                if (i == j) continue; // Don't try to merge with yourself...
+
+                ItemStack otherStack = inventoryIn.getStackInSlot(j);
+                if (!canStacksMergeWithOreDict(craftStack, otherStack, false)) continue; // If the stack we pick doesn't fit into the crafting slot, pick another one.
+
+                if (InventoryHelper.canStacksMerge(existingStack, otherStack, false) && existingStack.stackSize > otherStack.stackSize + 1)
+                {
+                    existingStack.stackSize --;
+                    otherStack.stackSize ++;
+                    return; // Do only 1 per tick
                 }
             }
         }
@@ -156,6 +239,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     {
         Packet132TileEntityData packet = new Packet132TileEntityData(xCoord, yCoord, zCoord, 5, new NBTTagCompound());
         packet.data.setInteger("redstoneMode", redstoneMode);
+        packet.data.setInteger("crafts", crafts);
         return packet;
     }
 
@@ -163,6 +247,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     public void onDataPacket(INetworkManager net, Packet132TileEntityData pkt)
     {
         redstoneMode = pkt.data.getInteger("redstoneMode");
+        crafts = pkt.data.getInteger("crafts");
     }
 
     public void updateRecipe()
@@ -176,7 +261,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack)
     {
-        for (int i : SLOTS_IN) if (i == slot) return InventoryHelper.canStacksMerge(stack, multiInventory.getStackInSlot(i - IN), false);
+        for (int i : SLOTS_IN) if (i == slot) return canStacksMergeWithOreDict(stack, multiInventory.getStackInSlot(i - IN), false);
         return multiInventory.isItemValidForSlot(slot, stack);
     }
 
@@ -189,7 +274,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
     @Override
     public boolean canInsertItem(int slot, ItemStack stack, int side)
     {
-        for (int i : SLOTS_IN) if (i == slot) return isItemValidForSlot(slot, stack);
+        for (int i : SLOTS_IN) if (i == slot) return canStacksMergeWithOreDict(stack, multiInventory.getStackInSlot(i - IN), false);
         return false;
     }
 
@@ -202,7 +287,15 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
 
     public boolean canInteractWith(EntityPlayer player)
     {
+        PacketDispatcher.sendPacketToPlayer(PacketDispatcher.getPacket(CHANNEL_RMU, Joiner.on(";").join(this.xCoord, this.yCoord, this.zCoord, this.redstoneMode, this.crafts).getBytes()), (cpw.mods.fml.common.network.Player) player);
         return true;
+    }
+
+    @Optional.Method(modid = BC_MODID)
+    @Override
+    public LinkedList<ITrigger> getTriggers()
+    {
+        return BuildcraftHelper.getAutocrafterTriggers();
     }
 
     /**
@@ -315,6 +408,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         InventoryHelper.readInvFromNBT(inventoryIn, INV_IN, data);
         InventoryHelper.readInvFromNBT(inventoryOut, INV_OUT, data);
         redstoneMode = data.getInteger("redstoneMode");
+        crafts = data.getInteger("crafts");
 
         updateRecipe(); // Must update after load.
     }
@@ -328,6 +422,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory
         InventoryHelper.writeInvToNBT(inventoryIn, INV_IN, data);
         InventoryHelper.writeInvToNBT(inventoryOut, INV_OUT, data);
         data.setInteger("redstoneMode", redstoneMode);
+        data.setInteger("crafts", crafts);
     }
 
     @Override

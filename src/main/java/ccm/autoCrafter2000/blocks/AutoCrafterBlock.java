@@ -66,7 +66,6 @@ public class AutoCrafterBlock extends BlockContainer
         GameRegistry.registerTileEntity(AutoCrafterTile.class, "AutoCrafterTile");
         LanguageRegistry.addName(this, "AutoCrafter");
         CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chest, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
-        CraftingManager.getInstance().addRecipe(new ItemStack(this), " c ", "iwi", " t ", 'c', Block.chestTrapped, 'i', Item.ingotIron, 'w', Block.workbench, 't', Block.torchRedstoneActive);
 
         instance = this;
     }

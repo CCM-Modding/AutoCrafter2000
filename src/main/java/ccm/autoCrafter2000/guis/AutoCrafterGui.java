@@ -92,6 +92,7 @@ public class AutoCrafterGui extends GuiContainer
         this.fontRenderer.drawString("Input", 25, 73, 4210752);
         this.fontRenderer.drawString("Output", 98, 73, 4210752);
         this.fontRenderer.drawString("Inventory", 8, this.ySize - 92, 4210752);
+        this.fontRenderer.drawString("Crafts: " + ((AutoCrafterContainer) this.inventorySlots).tile.crafts, 75, 6, 4210752);
     }
 
     /**

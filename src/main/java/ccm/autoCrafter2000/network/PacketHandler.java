@@ -48,6 +48,7 @@ public class PacketHandler implements IPacketHandler
             if (tileEntity instanceof AutoCrafterTile)
             {
                 ((AutoCrafterTile) tileEntity).redstoneMode = Integer.parseInt(split[3]);
+                if (FMLCommonHandler.instance().getEffectiveSide().isClient() && split.length > 4) ((AutoCrafterTile) tileEntity).crafts = Integer.parseInt(split[4]);
                 try
                 {
                     if (FMLCommonHandler.instance().getSide().isClient())

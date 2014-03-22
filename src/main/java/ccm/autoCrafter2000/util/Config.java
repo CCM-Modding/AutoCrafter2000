@@ -36,13 +36,17 @@ import java.io.File;
  */
 public class Config
 {
-    public int blockAutoCrafterID = 1655;
+    public int     craftDelay           = 10;
+    public int     blockAutoCrafterID   = 1655;
+    public boolean updateCraftCountLive = true;
 
     public Config(File file)
     {
         Configuration configuration = new Configuration(file);
 
         blockAutoCrafterID = configuration.getBlock("blockAutoCrafterID", blockAutoCrafterID).getInt();
+        updateCraftCountLive = configuration.get(Configuration.CATEGORY_GENERAL, "updateCraftCountLive", updateCraftCountLive, "Send a packet to all players in the GUI to update craft count.\nDisable if network speed is an issue.").getBoolean(updateCraftCountLive);
+        craftDelay = configuration.get(Configuration.CATEGORY_GENERAL, "craftDelay", craftDelay, "Amount of ticks in between each craft operation. 20 ticks is 1 second.").getInt();
 
         configuration.save();
     }
