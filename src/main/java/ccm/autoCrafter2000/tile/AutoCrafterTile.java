@@ -70,7 +70,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
 
     // Slots
     public static final  int   SLOT_OUT     = 0;
-    private static final int   MATRIX       = 3 * 3;
+    public static final  int   MATRIX       = 3 * 3;
     private static final int[] SLOTS_MATRIX = InventoryHelper.slotArray(SLOT_OUT, MATRIX);
     private static final int   IN           = 3 * 3;
     private static final int   OUT          = 3 * 3;
@@ -96,9 +96,9 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
     private int tick         = 0;
     private InternalPlayer internalPlayer;
     private SlotCrafting   craftSlot;
-    private final List<ItemStack> overflow = new LinkedList<ItemStack>();
-    public int crafts = 0;
-    public List<EntityPlayer> players = new LinkedList<EntityPlayer>();
+    private final List<ItemStack>    overflow = new LinkedList<ItemStack>();
+    public        int                crafts   = 0;
+    public        List<EntityPlayer> players  = new LinkedList<EntityPlayer>();
 
     @Override
     public void updateEntity()
@@ -135,9 +135,10 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
         if (willCraft && !InventoryHelper.hasSpaceFor(inventoryOut, result)) willCraft = false;
         if (willCraft)
         {
-            crafts ++;
+            crafts++;
             result = result.copy();
-            if (AutoCrafter2000.getConfig().updateCraftCountLive) for (EntityPlayer player : players) PacketDispatcher.sendPacketToPlayer(PacketDispatcher.getPacket(CHANNEL_RMU, Joiner.on(";").join(this.xCoord, this.yCoord, this.zCoord, this.redstoneMode, this.crafts).getBytes()), (cpw.mods.fml.common.network.Player) player);
+            if (AutoCrafter2000.getConfig().updateCraftCountLive)
+                for (EntityPlayer player : players) PacketDispatcher.sendPacketToPlayer(PacketDispatcher.getPacket(CHANNEL_RMU, Joiner.on(";").join(this.xCoord, this.yCoord, this.zCoord, this.redstoneMode, this.crafts).getBytes()), (cpw.mods.fml.common.network.Player) player);
             craftSlot.onPickupFromSlot(internalPlayer, result);
 
             ItemStack stack = InventoryHelper.addToInventory(inventoryOut, result);
@@ -166,7 +167,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
      */
     private void reBalanceSlots()
     {
-        for (int i = 0; i < MATRIX; i ++)
+        for (int i = 0; i < MATRIX; i++)
         {
             ItemStack craftStack = inventoryMatrix.getStackInSlot(i);
             if (craftStack == null) continue;

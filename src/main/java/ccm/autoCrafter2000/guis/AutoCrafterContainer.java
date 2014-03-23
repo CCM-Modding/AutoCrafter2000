@@ -23,12 +23,13 @@
 
 package ccm.autoCrafter2000.guis;
 
+import ccm.autoCrafter2000.guis.parts.FakeSlotCrafting;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -44,7 +45,7 @@ public class AutoCrafterContainer extends Container
     public AutoCrafterContainer(EntityPlayer player, AutoCrafterTile te)
     {
         tile = te;
-        this.addSlotToContainer(new SlotCrafting(player, tile.inventoryMatrix, tile.inventoryCraftResult, AutoCrafterTile.SLOT_OUT, 124, 35));                          // Recipe output
+        this.addSlotToContainer(new FakeSlotCrafting(player, tile.inventoryMatrix, tile.inventoryCraftResult, AutoCrafterTile.SLOT_OUT, 124, 35));                          // Recipe output
         for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryMatrix,  x + y * 3,      30 + x * 18,    17 + y * 18));  // The recipe matrix
         for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryIn,      x + y * 3,      26 + x * 18,    84 + y * 18));  // Input
         for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryOut,     x + y * 3,      98 + x * 18,    84 + y * 18));  // Output
@@ -55,9 +56,37 @@ public class AutoCrafterContainer extends Container
     }
 
     @Override
-    public ItemStack slotClick(int i, int j, int modifier, EntityPlayer entityplayer)
+    public ItemStack slotClick(int i, int mousebtn, int modifier, EntityPlayer player)
     {
-        ItemStack stack = super.slotClick(i, j, modifier, entityplayer);
+        ItemStack stack = null;
+        if (i >= 0 && i <= AutoCrafterTile.MATRIX) // Fake slots
+        {
+            if (mousebtn == 2)
+            {
+                getSlot(i).putStack(null);
+            }
+            else if (mousebtn == 0 || mousebtn == 1)
+            {
+                InventoryPlayer playerInv = player.inventory;
+                getSlot(i).onSlotChanged();
+                ItemStack stackSlot = getSlot(i).getStack();
+                ItemStack stackHeld = playerInv.getItemStack();
+
+                if (stackSlot != null) stack = stackSlot.copy();
+
+                if (stackHeld != null)
+                {
+                    stackHeld = stackHeld.copy();
+                    stackHeld.stackSize = 1;
+                    getSlot(i).putStack(stackHeld);
+                }
+                else getSlot(i).putStack(null);
+            }
+        }
+        else
+        {
+            stack = super.slotClick(i, mousebtn, modifier, player);
+        }
         onCraftMatrixChanged(tile);
         return stack;
     }
@@ -99,24 +128,33 @@ public class AutoCrafterContainer extends Container
 
     public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int par2)
     {
-        if (true) return null;
         ItemStack itemstack = null;
-
-        Slot slot = (Slot) this.inventorySlots.get(par2);
-
-        if (slot != null && slot.getHasStack())
-        {
-            ItemStack itemstack1 = slot.getStack();
-            itemstack = itemstack1.copy();
-
-            if (par2 < 10) return null; // Don't shift click into the crafting matrix
-            else if (par2 < 28) if (!this.mergeItemStack(itemstack1, 28, this.inventorySlots.size(), true)) return null; // inventory to I & O
-            else if (!this.mergeItemStack(itemstack1, 10, 28, false)) return null; // I & O to inventory
-
-            if (itemstack1.stackSize == 0) slot.putStack(null);
-            else slot.onSlotChanged();
-        }
-
+//        Slot slot = (Slot) this.inventorySlots.get(par2);
+//        if (slot != null && slot.getHasStack())
+//        {
+//            ItemStack itemstack1 = slot.getStack();
+//            itemstack = itemstack1.copy();
+//
+//            if (par2 < 9) return null;
+//            else if (par2 >= 18 && par2 < 27) if (!this.mergeItemStack(itemstack1, 27, 27 + 36, false)) return null;
+//            else if (par2 < 27) if (!this.mergeItemStack(itemstack1, 9, 27, true)) return null;
+//
+//            if (itemstack1.stackSize == 0)
+//            {
+//                slot.putStack(null);
+//            }
+//            else
+//            {
+//                slot.onSlotChanged();
+//            }
+//
+//            if (itemstack1.stackSize == itemstack.stackSize)
+//            {
+//                return null;
+//            }
+//
+//            slot.onPickupFromSlot(par1EntityPlayer, itemstack1);
+//        }
         return itemstack;
     }
 
