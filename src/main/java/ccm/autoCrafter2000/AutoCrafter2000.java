@@ -25,6 +25,7 @@ package ccm.autoCrafter2000;
 
 import ccm.autoCrafter2000.blocks.AutoCrafterBlock;
 import ccm.autoCrafter2000.buildcraft.BuildcraftHelper;
+import ccm.autoCrafter2000.nei.NEIHelper;
 import ccm.autoCrafter2000.network.GuiHandler;
 import ccm.autoCrafter2000.network.PacketHandler;
 import ccm.autoCrafter2000.util.Config;
@@ -38,8 +39,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 
 import java.util.logging.Logger;
 
-import static ccm.autoCrafter2000.util.Constants.CHANNEL_RMU;
-import static ccm.autoCrafter2000.util.Constants.MODID;
+import static ccm.autoCrafter2000.util.Constants.*;
 
 /**
  * The main mod class
@@ -47,7 +47,7 @@ import static ccm.autoCrafter2000.util.Constants.MODID;
  * @author Dries007
  */
 @Mod(modid = MODID, useMetadata = true)
-@NetworkMod(clientSideRequired = true, packetHandler = PacketHandler.class, channels = { CHANNEL_RMU })
+@NetworkMod(clientSideRequired = true, packetHandler = PacketHandler.class, channels = {CHANNEL_RMU, CHANNEL_NEI})
 public class AutoCrafter2000
 {
     @Mod.Instance(MODID)
@@ -72,7 +72,8 @@ public class AutoCrafter2000
     public void event(FMLInitializationEvent event)
     {
         NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
-        if (Loader.isModLoaded("BuildCraft|Core")) BuildcraftHelper.init();
+        if (Loader.isModLoaded(BC_MODID)) BuildcraftHelper.init();
+        if (Loader.isModLoaded(NEI_MODID)) NEIHelper.init();
     }
 
     public static String getVersion()

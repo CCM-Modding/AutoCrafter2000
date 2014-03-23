@@ -31,6 +31,12 @@ import ccm.autoCrafter2000.buildcraft.triggers.RecipeSetTrigger;
 
 import java.util.LinkedList;
 
+/**
+ * Does all BC comparability stuff.
+ * Catches all errors, but isn't called if BS isn't installed.
+ *
+ * @author Dries007
+ */
 public class BuildcraftHelper
 {
     private static final LinkedList<ITrigger> triggers = new LinkedList<ITrigger>();
@@ -58,6 +64,9 @@ public class BuildcraftHelper
         }
     }
 
+    /**
+     * Used for overriding the default BC triggers.
+     */
     public static LinkedList<ITrigger> getAutocrafterTriggers()
     {
         return triggers;

@@ -78,6 +78,8 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
     private static final int[] SLOTS_OUT    = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1 + IN, OUT);
     private static final int[] SLOTS_IO     = InventoryHelper.slotArray(SLOTS_MATRIX.length + 1, IN + OUT);
 
+    public static final int[] ARRAY_FOR_SHUFFEL = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+
     // Inventories this block is made out of, the multi one is used for the ISidedInventory
     public final  InventoryCraftResult inventoryCraftResult = new InventoryCraftResult();
     public final  InventoryCrafting    inventoryMatrix      = InventoryHelper.newCraftingMatrix(MATRIX, 1);
@@ -136,23 +138,28 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
         if (willCraft)
         {
             crafts++;
-            result = result.copy();
-            if (AutoCrafter2000.getConfig().updateCraftCountLive)
-                for (EntityPlayer player : players) PacketDispatcher.sendPacketToPlayer(PacketDispatcher.getPacket(CHANNEL_RMU, Joiner.on(";").join(this.xCoord, this.yCoord, this.zCoord, this.redstoneMode, this.crafts).getBytes()), (cpw.mods.fml.common.network.Player) player);
+            result = result.copy(); // Won't be null cause then willCraft would have been false.
+            if (AutoCrafter2000.getConfig().updateCraftCountLive) for (EntityPlayer player : players)
+                PacketDispatcher.sendPacketToPlayer(PacketDispatcher.getPacket(CHANNEL_RMU, Joiner.on(";").join(this.xCoord, this.yCoord, this.zCoord, this.redstoneMode, this.crafts).getBytes()), (cpw.mods.fml.common.network.Player) player);
+
+            // Craft!
             craftSlot.onPickupFromSlot(internalPlayer, result);
 
+            // Overflow handling
             ItemStack stack = InventoryHelper.addToInventory(inventoryOut, result);
             if (stack != null) overflow.add(stack);
-
             for (int i = 0; i < internalPlayer.inventory.getSizeInventory(); i++)
             {
                 stack = InventoryHelper.addToInventory(inventoryOut, internalPlayer.inventory.getStackInSlotOnClosing(i));
                 if (stack != null) overflow.add(stack);
             }
         }
-        else reBalanceSlots();
+        else reBalanceSlots(); // If we can't / won't craft, we rebalanced 1 slot.
     }
 
+    /**
+     * Here to allow oreDict crafting
+     */
     public static boolean canStacksMergeWithOreDict(ItemStack stack1, ItemStack stack2, boolean ifNull)
     {
         if (InventoryHelper.canStacksMerge(stack1, stack2, ifNull)) return true;
@@ -162,12 +169,25 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
         return id1 != -1 && id1 == id2;
     }
 
+    private void shuffleArray(int[] ar)
+    {
+        for (int i = ar.length - 1; i > 0; i--)
+        {
+            int index = worldObj.rand.nextInt(i + 1);
+            // Simple swap
+            int a = ar[index];
+            ar[index] = ar[i];
+            ar[i] = a;
+        }
+    }
+
     /**
      * Done with 2 sets of loops to prioritize the filling of empty slots
      */
     private void reBalanceSlots()
     {
-        for (int i = 0; i < MATRIX; i++)
+        shuffleArray(ARRAY_FOR_SHUFFEL);  // Randomize slot order
+        for (int i : ARRAY_FOR_SHUFFEL)
         {
             ItemStack craftStack = inventoryMatrix.getStackInSlot(i);
             if (craftStack == null) continue;
@@ -192,7 +212,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
                 }
             }
         }
-        for (int i = 0; i < MATRIX; i ++)
+        for (int i : ARRAY_FOR_SHUFFEL)
         {
             ItemStack craftStack = inventoryMatrix.getStackInSlot(i);
             if (craftStack == null) continue;
@@ -212,8 +232,8 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
 
                 if (InventoryHelper.canStacksMerge(existingStack, otherStack, false) && existingStack.stackSize > otherStack.stackSize + 1)
                 {
-                    existingStack.stackSize --;
-                    otherStack.stackSize ++;
+                    existingStack.stackSize--;
+                    otherStack.stackSize++;
                     return; // Do only 1 per tick
                 }
             }
@@ -299,6 +319,12 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
         return BuildcraftHelper.getAutocrafterTriggers();
     }
 
+    public void dropAll()
+    {
+        InventoryHelper.dropItems(this.worldObj, inventoryIn, xCoord, yCoord, zCoord);
+        InventoryHelper.dropItems(this.worldObj, inventoryOut, xCoord, yCoord, zCoord);
+    }
+
     /**
      * I hate fake players myself but here is no better way.
      */
@@ -332,7 +358,8 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
     /**
      * Start boring interface / TE code
      */
-    public AutoCrafterTile() {}
+    public AutoCrafterTile()
+    {}
 
     public AutoCrafterTile(World world)
     {

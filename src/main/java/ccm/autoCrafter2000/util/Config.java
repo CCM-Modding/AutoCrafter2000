@@ -31,8 +31,8 @@ import java.io.File;
  * Config file
  * Contains ModID.
  *
- * @see ccm.autoCrafter2000.AutoCrafter2000#getConfig()
  * @author Dries007
+ * @see ccm.autoCrafter2000.AutoCrafter2000#getConfig()
  */
 public class Config
 {
@@ -46,7 +46,7 @@ public class Config
 
         blockAutoCrafterID = configuration.getBlock("blockAutoCrafterID", blockAutoCrafterID).getInt();
         updateCraftCountLive = configuration.get(Configuration.CATEGORY_GENERAL, "updateCraftCountLive", updateCraftCountLive, "Send a packet to all players in the GUI to update craft count.\nDisable if network speed is an issue.").getBoolean(updateCraftCountLive);
-        craftDelay = configuration.get(Configuration.CATEGORY_GENERAL, "craftDelay", craftDelay, "Amount of ticks in between each craft operation. 20 ticks is 1 second.").getInt();
+        craftDelay = configuration.get(Configuration.CATEGORY_GENERAL, "craftDelay", craftDelay, "Amount of ticks in between each craft operation. 20 ticks is 1 second.\nLower values (< +-5) increase item duping when shift-clicking. I can't fix that.").getInt();
 
         configuration.save();
     }

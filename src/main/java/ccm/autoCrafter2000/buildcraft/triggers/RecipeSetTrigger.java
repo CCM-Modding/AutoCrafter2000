@@ -23,7 +23,7 @@
 
 package ccm.autoCrafter2000.buildcraft.triggers;
 
-import buildcraft.api.gates.ITileTrigger;
+import buildcraft.api.gates.ITrigger;
 import buildcraft.api.gates.ITriggerParameter;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import cpw.mods.fml.relauncher.Side;
@@ -35,10 +35,21 @@ import net.minecraftforge.common.ForgeDirection;
 
 import static ccm.autoCrafter2000.util.Constants.MODID;
 
-public class RecipeSetTrigger implements ITileTrigger
+/**
+ * Trigger for when recipe is set.
+ *
+ * @author Dries007
+ */
+public class RecipeSetTrigger implements ITrigger
 {
     @SideOnly(Side.CLIENT)
     private Icon icon;
+
+    @Override
+    public int getLegacyId()
+    {
+        return 0;
+    }
 
     @Override
     public String getUniqueTag()

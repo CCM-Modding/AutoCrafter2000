@@ -27,6 +27,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.SlotCrafting;
 
+/**
+ * To prevent you from actually crafting
+ *
+ * @author Dries007
+ */
 public class FakeSlotCrafting extends SlotCrafting
 {
     public FakeSlotCrafting(EntityPlayer par1EntityPlayer, IInventory par2IInventory, IInventory par3IInventory, int par4, int par5, int par6)

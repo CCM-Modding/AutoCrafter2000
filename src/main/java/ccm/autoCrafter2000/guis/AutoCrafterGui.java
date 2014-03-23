@@ -23,12 +23,14 @@
 
 package ccm.autoCrafter2000.guis;
 
+import ccm.autoCrafter2000.guis.parts.GuiButtonItemStack;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import com.google.common.base.Joiner;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -41,12 +43,12 @@ import static ccm.autoCrafter2000.util.Constants.CHANNEL_RMU;
 /**
  * The gui for the autocrafter.
  *
- * @see ccm.autoCrafter2000.guis.AutoCrafterContainer
  * @author Dries007
+ * @see ccm.autoCrafter2000.guis.AutoCrafterContainer
  */
 public class AutoCrafterGui extends GuiContainer
 {
-    private static final int ID_REDSTONE = 0;
+    private static final int              ID_REDSTONE              = 0;
     private static final ResourceLocation craftingTableGuiTextures = new ResourceLocation("autocrafter2000:textures/gui/autocraftingtable.png");
 
     public GuiButtonItemStack redstonebutton;
@@ -61,7 +63,7 @@ public class AutoCrafterGui extends GuiContainer
     {
         super.initGui();
         //noinspection unchecked
-        this.buttonList.add(redstonebutton = new GuiButtonItemStack(ID_REDSTONE, width/2 + 64, height/2 - 111, new ItemStack(Item.redstone), new ItemStack(Block.torchRedstoneActive), new ItemStack(Block.torchRedstoneIdle)));
+        this.buttonList.add(redstonebutton = new GuiButtonItemStack(ID_REDSTONE, width / 2 + 64, height / 2 - 111, new ItemStack(Item.redstone), new ItemStack(Block.torchRedstoneActive), new ItemStack(Block.torchRedstoneIdle)));
         setRedstonebutton();
     }
 
@@ -82,7 +84,6 @@ public class AutoCrafterGui extends GuiContainer
         }
     }
 
-
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items)
      */
@@ -93,6 +94,29 @@ public class AutoCrafterGui extends GuiContainer
         this.fontRenderer.drawString("Output", 98, 73, 4210752);
         this.fontRenderer.drawString("Inventory", 8, this.ySize - 92, 4210752);
         this.fontRenderer.drawString("Crafts: " + ((AutoCrafterContainer) this.inventorySlots).tile.crafts, 75, 6, 4210752);
+
+        if (redstonebutton.xPosition < par1 && par1 < redstonebutton.xPosition + 20)
+        {
+            if (redstonebutton.yPosition < par2 && par2 < redstonebutton.yPosition + 20)
+            {
+                String s = "";
+                switch (redstonebutton.item)
+                {
+                    case 0:
+                        s = "Redstone disables";
+                        break;
+                    case 1:
+                        s = "Redstone enables";
+                        break;
+                    case 2:
+                        s = "Redstone ignored";
+                        break;
+                }
+                this.drawCreativeTabHoveringText(s, par1 - this.guiLeft, par2 - this.guiTop);
+                RenderHelper.enableGUIStandardItemLighting();
+                //this.fontRenderer.drawString("StringTest", 50, 50, 4210752);
+            }
+        }
     }
 
     /**

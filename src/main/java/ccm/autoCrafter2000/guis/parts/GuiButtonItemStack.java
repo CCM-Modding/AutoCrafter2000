@@ -31,13 +31,18 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.item.ItemStack;
 
+/**
+ * Button that renders an itemStack, default size is 20 x 20, text is blank.
+ *
+ * @author Dries007
+ */
 @SideOnly(Side.CLIENT)
 public class GuiButtonItemStack extends GuiButton
 {
     public static final RenderItem ITEM_RENDERER = new RenderItem();
 
     private ItemStack[] itemStacks;
-    public int item;
+    public  int         item;
 
     public GuiButtonItemStack(int id, int xPosition, int yPosition, ItemStack... itemStacks)
     {

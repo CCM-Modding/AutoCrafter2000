@@ -23,19 +23,32 @@
 
 package ccm.autoCrafter2000.network;
 
+import ccm.autoCrafter2000.guis.AutoCrafterContainer;
 import ccm.autoCrafter2000.guis.AutoCrafterGui;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
+import ccm.nucleumOmnium.helpers.NetworkHelper;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.IPacketHandler;
 import cpw.mods.fml.common.network.Player;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 
+import static ccm.autoCrafter2000.util.Constants.CHANNEL_NEI;
 import static ccm.autoCrafter2000.util.Constants.CHANNEL_RMU;
 
+/**
+ * Packets!
+ * Allows the client to update the redstone state
+ * Allows the server to update the craft count
+ *
+ * @author Dries007
+ */
 public class PacketHandler implements IPacketHandler
 {
     @Override
@@ -64,6 +77,20 @@ public class PacketHandler implements IPacketHandler
                     // Meh... might be some client issues.
                 }
             }
+        }
+
+        if (packet.channel.equalsIgnoreCase(CHANNEL_NEI) && ((EntityPlayer) player).openContainer instanceof AutoCrafterContainer)
+        {
+            NBTTagCompound root = NetworkHelper.byteArrayToNBT(packet.data);
+
+            for (int i = 0; i < AutoCrafterTile.MATRIX; i++)
+            {
+                ItemStack itemStack = ItemStack.loadItemStackFromNBT(root.getCompoundTag(String.valueOf(i)));
+                Slot slot = ((EntityPlayer) player).openContainer.getSlot(i + 1);
+                slot.putStack(itemStack);
+                slot.onSlotChanged();
+            }
+            ((EntityPlayer) player).openContainer.onCraftMatrixChanged(((AutoCrafterContainer) ((EntityPlayer) player).openContainer).tile);
         }
     }
 }

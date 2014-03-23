@@ -23,7 +23,7 @@
 
 package ccm.autoCrafter2000.buildcraft.triggers;
 
-import buildcraft.api.gates.ITileTrigger;
+import buildcraft.api.gates.ITrigger;
 import buildcraft.api.gates.ITriggerParameter;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import cpw.mods.fml.relauncher.Side;
@@ -37,7 +37,12 @@ import net.minecraftforge.common.ForgeDirection;
 
 import static ccm.autoCrafter2000.util.Constants.MODID;
 
-public class InventoryTrigger implements ITileTrigger
+/**
+ * Largely same as the default BC ones, except we differentiate between input and output
+ *
+ * @author Dries007
+ */
+public class InventoryTrigger implements ITrigger
 {
     public enum State
     {
@@ -73,7 +78,7 @@ public class InventoryTrigger implements ITileTrigger
 
     public boolean isTriggerActive(IInventory inventory)
     {
-        for (int i = 0; i < inventory.getSizeInventory(); i ++)
+        for (int i = 0; i < inventory.getSizeInventory(); i++)
         {
             ItemStack itemStack = inventory.getStackInSlot(i);
             if (itemStack != null && state == State.Has_Items) return true;
@@ -83,6 +88,12 @@ public class InventoryTrigger implements ITileTrigger
         }
 
         return state != State.Has_Items;
+    }
+
+    @Override
+    public int getLegacyId()
+    {
+        return 0;
     }
 
     @Override
@@ -120,7 +131,7 @@ public class InventoryTrigger implements ITileTrigger
     @Override
     public String getDescription()
     {
-        return inventoryType.name() +  "put buffer " + state.name().toLowerCase().replace('_', ' ');
+        return inventoryType.name() + "put buffer " + state.name().toLowerCase().replace('_', ' ');
     }
 
     @Override

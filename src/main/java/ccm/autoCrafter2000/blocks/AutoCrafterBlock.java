@@ -26,7 +26,6 @@ package ccm.autoCrafter2000.blocks;
 import ccm.autoCrafter2000.AutoCrafter2000;
 import ccm.autoCrafter2000.tile.AutoCrafterTile;
 import ccm.autoCrafter2000.util.Constants;
-import ccm.nucleumOmnium.helpers.InventoryHelper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -37,7 +36,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
@@ -57,9 +55,9 @@ public class AutoCrafterBlock extends BlockContainer
     private final Icon[]   icons      = new Icon[6];
     private final String[] icon_names = {"_bottom", "_top", "_side", "_side1", "_side2", "_side3"};
 
-    public AutoCrafterBlock(int par1)
+    public AutoCrafterBlock(int blockID)
     {
-        super(par1, Material.iron);
+        super(blockID, Material.iron);
         setHardness(5.0F).setResistance(10.0F).setStepSound(soundMetalFootstep).setUnlocalizedName("AutoCrafter").setCreativeTab(CreativeTabs.tabMisc);
 
         GameRegistry.registerBlock(this, "AutoCrafterBlock");
@@ -74,7 +72,7 @@ public class AutoCrafterBlock extends BlockContainer
     public void breakBlock(World world, int x, int y, int z, int par5, int par6)
     {
         TileEntity te = world.getBlockTileEntity(x, y, z);
-        if (te instanceof IInventory) InventoryHelper.dropItems(world, (IInventory) te, x, y, z);
+        if (te instanceof AutoCrafterTile) ((AutoCrafterTile) te).dropAll();
 
         super.breakBlock(world, x, y, z, par5, par6);
     }

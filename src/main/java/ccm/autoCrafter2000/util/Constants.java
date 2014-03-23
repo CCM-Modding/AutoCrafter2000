@@ -30,9 +30,11 @@ package ccm.autoCrafter2000.util;
  */
 public class Constants
 {
-    public static final String  MODID = "AutoCrafter2000";
-    public static final int     GuiID_AutoCrafter = 1;
-    public static final String  CHANNEL_RMU = "AC2000rmu"; // REDSTONE_MODE_UPDATE
+    public static final String MODID             = "AutoCrafter2000";
+    public static final int    GuiID_AutoCrafter = 1;
+    public static final String CHANNEL_RMU       = "AC2000rmu"; // REDSTONE_MODE_UPDATE
+    public static final String CHANNEL_NEI       = "AC2000nei"; // Channel for nei recipe select
 
-    public static final String  BC_MODID = "BuildCraft|Core";
+    public static final String BC_MODID  = "BuildCraft|Core";
+    public static final String NEI_MODID = "NotEnoughItems";
 }

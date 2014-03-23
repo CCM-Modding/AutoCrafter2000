@@ -45,16 +45,19 @@ public class AutoCrafterContainer extends Container
     public AutoCrafterContainer(EntityPlayer player, AutoCrafterTile te)
     {
         tile = te;
-        this.addSlotToContainer(new FakeSlotCrafting(player, tile.inventoryMatrix, tile.inventoryCraftResult, AutoCrafterTile.SLOT_OUT, 124, 35));                          // Recipe output
-        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryMatrix,  x + y * 3,      30 + x * 18,    17 + y * 18));  // The recipe matrix
-        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryIn,      x + y * 3,      26 + x * 18,    84 + y * 18));  // Input
-        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryOut,     x + y * 3,      98 + x * 18,    84 + y * 18));  // Output
-        for (int y = 0; y < 3; y++) for (int x = 0; x < 9; x++) this.addSlotToContainer(new Slot(player.inventory,      x + y * 9 + 9,  8 + x * 18,     149 + y * 18)); // Player inventory
-        for (int x = 0; x < 9; x++)                             this.addSlotToContainer(new Slot(player.inventory,      x,              8 + x * 18,     207));          // Player hotbar
+        this.addSlotToContainer(new FakeSlotCrafting(player, tile.inventoryMatrix, tile.inventoryCraftResult, AutoCrafterTile.SLOT_OUT, 124, 35));                      // Recipe output
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryMatrix, x + y * 3, 30 + x * 18, 17 + y * 18));  // The recipe matrix
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryIn, x + y * 3, 26 + x * 18, 84 + y * 18));  // Input
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) this.addSlotToContainer(new Slot(tile.inventoryOut, x + y * 3, 98 + x * 18, 84 + y * 18));  // Output
+        for (int y = 0; y < 3; y++) for (int x = 0; x < 9; x++) this.addSlotToContainer(new Slot(player.inventory, x + y * 9 + 9, 8 + x * 18, 149 + y * 18)); // Player inventory
+        for (int x = 0; x < 9; x++) this.addSlotToContainer(new Slot(player.inventory, x, 8 + x * 18, 207));          // Player hotbar
         this.onCraftMatrixChanged(tile);
         tile.players.add(player);
     }
 
+    /**
+     * Overridden to allow fake slots in the crafting matrix
+     */
     @Override
     public ItemStack slotClick(int i, int mousebtn, int modifier, EntityPlayer player)
     {
@@ -117,8 +120,8 @@ public class AutoCrafterContainer extends Container
     {
         super.onCraftMatrixChanged(par1IInventory);
         tile.updateRecipe();
-        if (tile.recipe == null)    tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, null);
-        else                        tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput().copy());
+        if (tile.recipe == null) tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, null);
+        else tile.setInventorySlotContents(AutoCrafterTile.SLOT_OUT, tile.recipe.getRecipeOutput().copy());
     }
 
     public boolean canInteractWith(EntityPlayer par1EntityPlayer)
@@ -126,38 +129,68 @@ public class AutoCrafterContainer extends Container
         return tile.canInteractWith(par1EntityPlayer);
     }
 
-    public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int par2)
+    /**
+     * Shift click crap. I don't ever want to change this.
+     */
+    public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int slotIndex)
     {
         ItemStack itemstack = null;
-//        Slot slot = (Slot) this.inventorySlots.get(par2);
-//        if (slot != null && slot.getHasStack())
-//        {
-//            ItemStack itemstack1 = slot.getStack();
-//            itemstack = itemstack1.copy();
-//
-//            if (par2 < 9) return null;
-//            else if (par2 >= 18 && par2 < 27) if (!this.mergeItemStack(itemstack1, 27, 27 + 36, false)) return null;
-//            else if (par2 < 27) if (!this.mergeItemStack(itemstack1, 9, 27, true)) return null;
-//
-//            if (itemstack1.stackSize == 0)
-//            {
-//                slot.putStack(null);
-//            }
-//            else
-//            {
-//                slot.onSlotChanged();
-//            }
-//
-//            if (itemstack1.stackSize == itemstack.stackSize)
-//            {
-//                return null;
-//            }
-//
-//            slot.onPickupFromSlot(par1EntityPlayer, itemstack1);
-//        }
+        Slot slot = (Slot) this.inventorySlots.get(slotIndex);
+
+        if (slot != null && slot.getHasStack())
+        {
+            ItemStack itemstack1 = slot.getStack();
+            itemstack = itemstack1.copy();
+
+            if (slotIndex < 9) return null;
+            else if (slotIndex < 19)
+            {
+                if (!this.mergeItemStack(itemstack1, 18, inventorySlots.size(), true))
+                {
+                    return null;
+                }
+            }
+            else if (slotIndex < 28)
+            {
+                if (!this.mergeItemStack(itemstack1, 27, inventorySlots.size(), true))
+                {
+                    return null;
+                }
+            }
+            for (int i = 0; i < 9; i++)
+            {
+                if (AutoCrafterTile.canStacksMergeWithOreDict(tile.inventoryMatrix.getStackInSlot(i), itemstack1, false))
+                {
+                    if (this.mergeItemStack(itemstack1, 10 + i, 11 + i, false))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (itemstack1.stackSize == 0)
+            {
+                slot.putStack(null);
+            }
+            else
+            {
+                slot.onSlotChanged();
+            }
+
+            if (itemstack1.stackSize == itemstack.stackSize)
+            {
+                return null;
+            }
+
+            slot.onPickupFromSlot(par1EntityPlayer, itemstack1);
+        }
+
         return itemstack;
     }
 
+    /**
+     * I have no idea...
+     */
     public boolean func_94530_a(ItemStack par1ItemStack, Slot par2Slot)
     {
         return par2Slot.inventory != this.tile && super.func_94530_a(par1ItemStack, par2Slot);
