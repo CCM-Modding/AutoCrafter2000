@@ -121,8 +121,11 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
         boolean willCraft = true;
         // Lower tick rate
         tick++;
-        if (AutoCrafter2000.getConfig().craftDelay != 0 && tick % AutoCrafter2000.getConfig().craftDelay != 0) willCraft = false;
-        tick = 0;
+        if (AutoCrafter2000.getConfig().craftDelay != 0 && tick % AutoCrafter2000.getConfig().craftDelay != 0)
+        {
+            willCraft = false;
+            tick = 0;
+        }
         debug("tickDelay", willCraft);
 
         // Redstone things
@@ -174,12 +177,12 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
 
     private void debug(Object o)
     {
-        if (debugTicks > 0) AutoCrafter2000.getLogger().info(o.toString());
+        if (debugTicks > 0) AutoCrafter2000.getLogger().info(debugTicks + ": " + o.toString());
     }
 
     private void debug(String s, Object o)
     {
-        if (debugTicks > 0) AutoCrafter2000.getLogger().info(s + ": " + (o == null ? "null" : o.toString()));
+        if (debugTicks > 0) AutoCrafter2000.getLogger().info(debugTicks + ": " + s + ": " + (o == null ? "null" : o.toString()));
     }
 
     /**
