@@ -81,9 +81,10 @@ public class AutoCrafterBlock extends BlockContainer
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer entityplayer, int side, float hitX, float hitY, float hitZ)
     {
         super.onBlockActivated(world, x, y, z, entityplayer, side, hitX, hitY, hitZ);
+        if (world.isRemote) return false;
 
-        if (entityplayer.isSneaking()) return false;
-        if (!world.isRemote) entityplayer.openGui(AutoCrafter2000.instance, Constants.GuiID_AutoCrafter, world, x, y, z);
+        if (AutoCrafter2000.getConfig().allowDebug && entityplayer.getHeldItem() != null && entityplayer.getHeldItem().getItem() == Item.stick) ((AutoCrafterTile) world.getBlockTileEntity(x, y, z)).debugTicks = 100;
+        else entityplayer.openGui(AutoCrafter2000.instance, Constants.GuiID_AutoCrafter, world, x, y, z);
 
         return true;
     }

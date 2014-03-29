@@ -29,6 +29,7 @@ import ccm.autoCrafter2000.nei.NEIHelper;
 import ccm.autoCrafter2000.network.GuiHandler;
 import ccm.autoCrafter2000.network.PacketHandler;
 import ccm.autoCrafter2000.util.Config;
+import ccm.nucleumOmnium.NucleumOmnium;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.ModMetadata;
@@ -37,6 +38,10 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.logging.Logger;
 
 import static ccm.autoCrafter2000.util.Constants.*;
@@ -60,10 +65,14 @@ public class AutoCrafter2000
     private Logger logger;
 
     @Mod.EventHandler()
-    public void event(FMLPreInitializationEvent event)
+    public void event(FMLPreInitializationEvent event) throws IOException
     {
         logger = event.getModLog();
-        config = new Config(event.getSuggestedConfigurationFile());
+
+        if (event.getSuggestedConfigurationFile().exists())
+            Files.move(FileSystems.getDefault().provider().getPath(event.getSuggestedConfigurationFile().toURI()), FileSystems.getDefault().provider().getPath(new File(NucleumOmnium.getCCMFolder(), MODID + ".cfg").toURI()));
+
+        config = new Config(new File(NucleumOmnium.getCCMFolder(), MODID + ".cfg"));
 
         new AutoCrafterBlock(config.blockAutoCrafterID);
     }

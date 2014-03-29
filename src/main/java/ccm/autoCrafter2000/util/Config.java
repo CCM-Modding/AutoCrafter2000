@@ -39,6 +39,7 @@ public class Config
     public int     craftDelay           = 10;
     public int     blockAutoCrafterID   = 1655;
     public boolean updateCraftCountLive = true;
+    public boolean allowDebug           = false;
 
     public Config(File file)
     {
@@ -47,6 +48,7 @@ public class Config
         blockAutoCrafterID = configuration.getBlock("blockAutoCrafterID", blockAutoCrafterID).getInt();
         updateCraftCountLive = configuration.get(Configuration.CATEGORY_GENERAL, "updateCraftCountLive", updateCraftCountLive, "Send a packet to all players in the GUI to update craft count.\nDisable if network speed is an issue.").getBoolean(updateCraftCountLive);
         craftDelay = configuration.get(Configuration.CATEGORY_GENERAL, "craftDelay", craftDelay, "Amount of ticks in between each craft operation. 20 ticks is 1 second.\nLower values (< +-5) increase item duping when shift-clicking. I can't fix that.").getInt();
+        allowDebug = configuration.get(Configuration.CATEGORY_GENERAL, "allowDebug", allowDebug, "Allow right click on the block with a stick to debug.").getBoolean(allowDebug);
 
         configuration.save();
     }

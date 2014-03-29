@@ -46,6 +46,7 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -96,6 +97,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
      */
     public  int redstoneMode = 0;
     private int tick         = 0;
+    public  int debugTicks   = 0;
     private InternalPlayer internalPlayer;
     private SlotCrafting   craftSlot;
     private final List<ItemStack>    overflow = new LinkedList<ItemStack>();
@@ -107,6 +109,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
     {
         super.updateEntity();
         if (worldObj.isRemote) return;
+        debug(this);
 
         // Initialize code
         if (craftSlot == null)
@@ -120,21 +123,28 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
         tick++;
         if (AutoCrafter2000.getConfig().craftDelay != 0 && tick % AutoCrafter2000.getConfig().craftDelay != 0) willCraft = false;
         tick = 0;
+        debug("tickDelay", willCraft);
 
         // Redstone things
         boolean powered = worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord);
         if (redstoneMode == 0 && powered) willCraft = false;
         if (redstoneMode == 1 && !powered) willCraft = false;
+        debug("powered", powered);
 
         // Deal with overflow. If we couldn't empty, don't make new stuff.
         emptyOverflow();
         if (!overflow.isEmpty()) willCraft = false;
+        debug("overflow.isEmpty", overflow.isEmpty());
+        debug("recipe", recipe);
 
         ItemStack result = null;
         if (willCraft && recipe == null) willCraft = false;
         if (willCraft && !recipe.matches(inventoryIn, worldObj)) willCraft = false;
+        debug("matches", willCraft);
         if (willCraft && (result = recipe.getCraftingResult(inventoryIn)) == null) willCraft = false;
+        debug("result", result);
         if (willCraft && !InventoryHelper.hasSpaceFor(inventoryOut, result)) willCraft = false;
+        debug("spacefor", willCraft);
         if (willCraft)
         {
             crafts++;
@@ -148,13 +158,28 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
             // Overflow handling
             ItemStack stack = InventoryHelper.addToInventory(inventoryOut, result);
             if (stack != null) overflow.add(stack);
+            debug("overflowFromCrafting", stack);
             for (int i = 0; i < internalPlayer.inventory.getSizeInventory(); i++)
             {
                 stack = InventoryHelper.addToInventory(inventoryOut, internalPlayer.inventory.getStackInSlotOnClosing(i));
                 if (stack != null) overflow.add(stack);
             }
+            debug("overflow.size", overflow.size());
         }
         else reBalanceSlots(); // If we can't / won't craft, we rebalanced 1 slot.
+
+        if (debugTicks > 0) debugTicks --;
+        debug("debugTicks", debugTicks);
+    }
+
+    private void debug(Object o)
+    {
+        if (debugTicks > 0) AutoCrafter2000.getLogger().info(o.toString());
+    }
+
+    private void debug(String s, Object o)
+    {
+        if (debugTicks > 0) AutoCrafter2000.getLogger().info(s + ": " + (o == null ? "null" : o.toString()));
     }
 
     /**
@@ -187,6 +212,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
     private void reBalanceSlots()
     {
         shuffleArray(ARRAY_FOR_SHUFFEL);  // Randomize slot order
+        debug("ARRAY_FOR_SHUFFEL", Arrays.toString(ARRAY_FOR_SHUFFEL));
         for (int i : ARRAY_FOR_SHUFFEL)
         {
             ItemStack craftStack = inventoryMatrix.getStackInSlot(i);
@@ -208,6 +234,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
                     if (existingStack.stackSize == 1) continue; // Prevent derp
                     inventoryIn.setInventorySlotContents(i, existingStack);
                     inventoryIn.setInventorySlotContents(j, existingStack.splitStack(1));
+                    debug("reBalanceSlot.FillEmptySlot");
                     return; // Do only 1 per tick
                 }
             }
@@ -234,6 +261,7 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
                 {
                     existingStack.stackSize--;
                     otherStack.stackSize++;
+                    debug("reBalanceSlot.ShiftOneItem");
                     return; // Do only 1 per tick
                 }
             }
@@ -253,6 +281,12 @@ public class AutoCrafterTile extends TileEntity implements ISidedInventory, IOve
                 iterator.remove();
             }
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return getClass().getName() + "@" + Integer.toHexString(hashCode()) + "[" + worldObj.getWorldInfo().getWorldName()  + "-" + worldObj.provider.getDimensionName() + (worldObj.isRemote ? "-remote" : "-local") + ";" + xCoord + ";" + yCoord + ";" + zCoord + "]";
     }
 
     @Override
