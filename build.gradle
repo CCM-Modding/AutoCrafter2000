@@ -38,7 +38,7 @@ minecraft {
 
 ext.BUILD_NUMBER = System.getenv().BUILD_NUMBER;
 if (ext.BUILD_NUMBER == null) ext.BUILD_NUMBER = "0"
-version = version + "." + ext.BUILD_NUMBER
+version = project.minecraft.minecraftVersion + "-" + version + "." + ext.BUILD_NUMBER
 
 dependencies {
     compile "ccm.nucleumOmnium:NucleumOmnium:" + project.minecraft.minecraftVersion + "-+:dev"
@@ -83,54 +83,57 @@ artifacts {
 }
 
 uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: mavenUrl) {
-                authentication(userName: mavenUser, password: mavenPassword)
-            }
-            pom {
-                groupId = project.group
-                version = project.minecraft.minecraftVersion + "-" + project.version
-                artifactId = project.archivesBaseName
-                project {
-                    name project.archivesBaseName
-                    packaging 'jar'
-                    description 'Adds a simple automatic crafting table.'
-                    url 'https://github.com/CCM-Modding/AutoCrafter2000'
-
-                    scm {
+    if (project.hasProperty("mavenUser") && project.hasProperty("mavenPassword")) {
+        repositories {
+            mavenDeployer {
+                repository(url: "http://maven.dries007.net/content/repositories/ccm/") {
+                    authentication(userName: mavenUser, password: mavenPassword)
+                }
+                
+                pom {
+                    groupId = project.group
+                    version = project.minecraft.minecraftVersion + "-" + project.version
+                    artifactId = project.archivesBaseName
+                    project {
+                        name project.archivesBaseName
+                        packaging 'jar'
+                        description 'Adds a simple automatic crafting table.'
                         url 'https://github.com/CCM-Modding/AutoCrafter2000'
-                        connection 'scm:git:git://github.com/CCM-Modding/AutoCrafter2000.git'
-                        developerConnection 'scm:git:git@github.com:CCM-Modding/AutoCrafter2000.git'
-                    }
 
-                    issueManagement {
-                        system 'github'
-                        url 'https://github.com/CCM-Modding/AutoCrafter2000/issues'
-                    }
-
-                    licenses  {
-                        license  {
-                            name 'MIT License'
-                            url 'https://raw.github.com/CCM-Modding/AutoCrafter2000/master/LICENCE'
-                            distribution 'repo'
+                        scm {
+                            url 'https://github.com/CCM-Modding/AutoCrafter2000'
+                            connection 'scm:git:git://github.com/CCM-Modding/AutoCrafter2000.git'
+                            developerConnection 'scm:git:git@github.com:CCM-Modding/AutoCrafter2000.git'
                         }
-                    }
 
-                    developers {
-                        developer {
-                            id 'Dries007'
-                            name 'Dries007'
-                            roles { role 'developer' }
+                        issueManagement {
+                            system 'github'
+                            url 'https://github.com/CCM-Modding/AutoCrafter2000/issues'
                         }
-                        developer {
-                            id 'Claycorp'
-                            name 'Claycorp'
-                            roles { role 'architect' }
+
+                        licenses  {
+                            license  {
+                                name 'MIT License'
+                                url 'https://raw.github.com/CCM-Modding/AutoCrafter2000/master/LICENCE'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'Dries007'
+                                name 'Dries007'
+                                roles { role 'developer' }
+                            }
+                            developer {
+                                id 'Claycorp'
+                                name 'Claycorp'
+                                roles { role 'architect' }
+                            }
                         }
                     }
                 }
-           }
-       }
+            }
+        }
     }
 }
